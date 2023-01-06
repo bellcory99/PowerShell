@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System;
@@ -50,10 +50,7 @@ namespace Microsoft.Management.UI.Internal
 
             set
             {
-                if (value == null)
-                {
-                    throw new ArgumentNullException("value");
-                }
+                ArgumentNullException.ThrowIfNull(value);
 
                 this.savedViewFactory = value;
             }
@@ -128,16 +125,16 @@ namespace Microsoft.Management.UI.Internal
             {
                 e.OldValue.RemoveFilterExpressionProvider(this.SearchBox);
                 e.OldValue.RemoveFilterExpressionProvider(this.FilterRulePanel);
-                e.OldValue.FilterExpressionChanged -= new EventHandler(this.Evaluator_FilterExpressionChanged);
-                e.NewValue.PropertyChanged -= new PropertyChangedEventHandler(this.Evaluator_PropertyChanged);
+                e.OldValue.FilterExpressionChanged -= this.Evaluator_FilterExpressionChanged;
+                e.NewValue.PropertyChanged -= this.Evaluator_PropertyChanged;
             }
 
             // Register the new evaluator \\
             e.NewValue.FilterTarget = this.List;
             e.NewValue.AddFilterExpressionProvider(this.SearchBox);
             e.NewValue.AddFilterExpressionProvider(this.FilterRulePanel);
-            e.NewValue.FilterExpressionChanged += new EventHandler(this.Evaluator_FilterExpressionChanged);
-            e.NewValue.PropertyChanged += new PropertyChangedEventHandler(this.Evaluator_PropertyChanged);
+            e.NewValue.FilterExpressionChanged += this.Evaluator_FilterExpressionChanged;
+            e.NewValue.PropertyChanged += this.Evaluator_PropertyChanged;
         }
 
         private void Evaluator_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -177,10 +174,7 @@ namespace Microsoft.Management.UI.Internal
         /// <exception cref="ArgumentNullException">The specified value is a null reference.</exception>
         public void AddColumn(InnerListColumn column)
         {
-            if (column == null)
-            {
-                throw new ArgumentNullException("column");
-            }
+            ArgumentNullException.ThrowIfNull(column);
 
             this.AddColumn(column, this.IsFilterShown);
         }
@@ -193,10 +187,7 @@ namespace Microsoft.Management.UI.Internal
         /// <exception cref="ArgumentNullException">The specified value is a null reference.</exception>
         public void AddColumn(InnerListColumn column, bool addDefaultFilterRules)
         {
-            if (column == null)
-            {
-                throw new ArgumentNullException("column");
-            }
+            ArgumentNullException.ThrowIfNull(column);
 
             this.List.Columns.Add(column);
 
@@ -229,10 +220,7 @@ namespace Microsoft.Management.UI.Internal
         /// <exception cref="ArgumentNullException">The specified value is a null reference.</exception>
         public void AddRule(FilterRule rule)
         {
-            if (rule == null)
-            {
-                throw new ArgumentNullException("rule");
-            }
+            ArgumentNullException.ThrowIfNull(rule);
 
             this.AddFilterRulePicker.ShortcutFilterRules.Add(new AddFilterRulePickerItem(new FilterRulePanelItem(rule, rule.DisplayName)));
         }

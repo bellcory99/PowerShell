@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System;
@@ -36,7 +36,7 @@ namespace Microsoft.PowerShell.Commands
     ///
     /// The user can specify how command output data is returned by using the public
     /// OutTarget enumeration (Host, Job).
-    /// The default actions of this cmdlet is to always direct ouput to host unless
+    /// The default actions of this cmdlet is to always direct output to host unless
     /// a job object already exists on the client that is associated with the running
     /// command.  In this case the existing job object is connected to the running
     /// command and returned.
@@ -125,7 +125,10 @@ namespace Microsoft.PowerShell.Commands
                    ParameterSetName = ReceivePSSessionCommand.ComputerInstanceIdParameterSet)]
         public string ApplicationName
         {
-            get { return _appName; }
+            get
+            {
+                return _appName;
+            }
 
             set
             {
@@ -150,7 +153,10 @@ namespace Microsoft.PowerShell.Commands
                    ParameterSetName = ReceivePSSessionCommand.ConnectionUriInstanceIdParameterSet)]
         public string ConfigurationName
         {
-            get { return _shell; }
+            get
+            {
+                return _shell;
+            }
 
             set
             {
@@ -257,7 +263,10 @@ namespace Microsoft.PowerShell.Commands
         [Credential()]
         public PSCredential Credential
         {
-            get { return _psCredential; }
+            get
+            {
+                return _psCredential;
+            }
 
             set
             {
@@ -278,7 +287,10 @@ namespace Microsoft.PowerShell.Commands
         [Parameter(ParameterSetName = ReceivePSSessionCommand.ConnectionUriInstanceIdParameterSet)]
         public AuthenticationMechanism Authentication
         {
-            get { return _authentication; }
+            get
+            {
+                return _authentication;
+            }
 
             set
             {
@@ -300,7 +312,10 @@ namespace Microsoft.PowerShell.Commands
         [Parameter(ParameterSetName = ReceivePSSessionCommand.ConnectionUriInstanceIdParameterSet)]
         public string CertificateThumbprint
         {
-            get { return _thumbprint; }
+            get
+            {
+                return _thumbprint;
+            }
 
             set
             {
@@ -389,15 +404,8 @@ namespace Microsoft.PowerShell.Commands
                 tmpJob = _job;
             }
 
-            if (tmpPipeline != null)
-            {
-                tmpPipeline.StopAsync();
-            }
-
-            if (tmpJob != null)
-            {
-                tmpJob.StopJob();
-            }
+            tmpPipeline?.StopAsync();
+            tmpJob?.StopJob();
         }
 
         #endregion
@@ -467,7 +475,7 @@ namespace Microsoft.PowerShell.Commands
                 // Find specified session.
                 bool haveMatch = false;
                 if (!string.IsNullOrEmpty(name) &&
-                    string.Compare(name, ((RemoteRunspace)runspace).RunspacePool.RemoteRunspacePoolInternal.Name, StringComparison.OrdinalIgnoreCase) == 0)
+                    string.Equals(name, ((RemoteRunspace)runspace).RunspacePool.RemoteRunspacePoolInternal.Name, StringComparison.OrdinalIgnoreCase))
                 {
                     // Selected by friendly name.
                     haveMatch = true;
@@ -803,19 +811,13 @@ namespace Microsoft.PowerShell.Commands
 
                 remoteRunspace.Disconnect();
 
-                if (stopPipelineReceive != null)
+                try
                 {
-                    try
-                    {
-                        stopPipelineReceive.Set();
-                    }
-                    catch (ObjectDisposedException) { }
+                    stopPipelineReceive?.Set();
                 }
+                catch (ObjectDisposedException) { }
 
-                if (job != null)
-                {
-                    job.StopJob();
-                }
+                job?.StopJob();
             }
         }
 
@@ -861,10 +863,7 @@ namespace Microsoft.PowerShell.Commands
 
                         foreach (var result in childJob.ReadAll())
                         {
-                            if (result != null)
-                            {
-                                result.WriteStreamObject(this);
-                            }
+                            result?.WriteStreamObject(this);
                         }
 
                         if (index == 0)
@@ -1115,7 +1114,7 @@ namespace Microsoft.PowerShell.Commands
         /// <param name="session">Session to connect.</param>
         /// <param name="ex">Optional exception object.</param>
         /// <returns>Connected session or null.</returns>
-        private PSSession ConnectSession(PSSession session, out Exception ex)
+        private static PSSession ConnectSession(PSSession session, out Exception ex)
         {
             ex = null;
 
@@ -1158,8 +1157,7 @@ namespace Microsoft.PowerShell.Commands
         /// <returns>PSSession disconnected runspace object.</returns>
         private PSSession TryGetSessionFromServer(PSSession session)
         {
-            RemoteRunspace remoteRunspace = session.Runspace as RemoteRunspace;
-            if (remoteRunspace == null)
+            if (!(session.Runspace is RemoteRunspace remoteRunspace))
             {
                 return null;
             }
@@ -1303,7 +1301,7 @@ namespace Microsoft.PowerShell.Commands
         private RemotePipeline _remotePipeline;
         private Job _job;
         private ManualResetEvent _stopPipelineReceive;
-        private object _syncObject = new object();
+        private readonly object _syncObject = new object();
 
         #endregion
     }
@@ -1326,7 +1324,7 @@ namespace Microsoft.PowerShell.Commands
         Host = 1,
 
         /// <summary>
-        /// Asynchronous mode.  Receive-PSSession ouput data goes to returned job object.
+        /// Asynchronous mode.  Receive-PSSession output data goes to returned job object.
         /// </summary>
         Job = 2
     }

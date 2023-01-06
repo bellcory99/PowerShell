@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System.Diagnostics.CodeAnalysis;
@@ -107,10 +107,12 @@ namespace System.Management.Automation.PerformanceData
             CounterSetId = counterSetId;
             CounterSetInstType = counterSetInstType;
             CounterSetName = counterSetName;
-            if ((counterInfoArray == null)
-                || (counterInfoArray.Length == 0))
+
+            ArgumentNullException.ThrowIfNull(counterInfoArray);
+
+            if (counterInfoArray.Length == 0)
             {
-                throw new ArgumentNullException("counterInfoArray");
+                throw new ArgumentNullException(nameof(counterInfoArray));
             }
 
             CounterInfoArray = new CounterInfo[counterInfoArray.Length];
@@ -134,10 +136,7 @@ namespace System.Management.Automation.PerformanceData
         protected CounterSetRegistrarBase(
             CounterSetRegistrarBase srcCounterSetRegistrarBase)
         {
-            if (srcCounterSetRegistrarBase == null)
-            {
-                throw new ArgumentNullException("srcCounterSetRegistrarBase");
-            }
+            ArgumentNullException.ThrowIfNull(srcCounterSetRegistrarBase);
 
             ProviderId = srcCounterSetRegistrarBase.ProviderId;
             CounterSetId = srcCounterSetRegistrarBase.CounterSetId;
@@ -241,10 +240,7 @@ namespace System.Management.Automation.PerformanceData
             PSCounterSetRegistrar srcPSCounterSetRegistrar)
             : base(srcPSCounterSetRegistrar)
         {
-            if (srcPSCounterSetRegistrar == null)
-            {
-                throw new ArgumentNullException("srcPSCounterSetRegistrar");
-            }
+            ArgumentNullException.ThrowIfNull(srcPSCounterSetRegistrar);
         }
 
         #endregion

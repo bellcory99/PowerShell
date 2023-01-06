@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 // This file contains the definitions for the objects
@@ -207,6 +207,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
         public int alignment = TextAlignment.Left;
         public string label = null;
         public string propertyName = null;
+        public bool HeaderMatchesProperty = true;
     }
 
     internal sealed class ListViewHeaderInfo : ShapeInfo

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System.Collections;
@@ -176,10 +176,7 @@ namespace System.Management.Automation
         /// </exception>
         public Job2 NewJob(JobDefinition definition)
         {
-            if (definition == null)
-            {
-                throw new ArgumentNullException("definition");
-            }
+            ArgumentNullException.ThrowIfNull(definition);
 
             JobSourceAdapter sourceAdapter = GetJobSourceAdapter(definition);
             Job2 newJob;
@@ -216,14 +213,11 @@ namespace System.Management.Automation
         /// </exception>
         public Job2 NewJob(JobInvocationInfo specification)
         {
-            if (specification == null)
-            {
-                throw new ArgumentNullException("specification");
-            }
+            ArgumentNullException.ThrowIfNull(specification);
 
             if (specification.Definition == null)
             {
-                throw new ArgumentException(RemotingErrorIdStrings.NewJobSpecificationError, "specification");
+                throw new ArgumentException(RemotingErrorIdStrings.NewJobSpecificationError, nameof(specification));
             }
 
             JobSourceAdapter sourceAdapter = GetJobSourceAdapter(specification.Definition);
@@ -263,12 +257,12 @@ namespace System.Management.Automation
         {
             if (job == null)
             {
-                throw new PSArgumentNullException("job");
+                throw new PSArgumentNullException(nameof(job));
             }
 
             if (definition == null)
             {
-                throw new PSArgumentNullException("definition");
+                throw new PSArgumentNullException(nameof(definition));
             }
 
             JobSourceAdapter sourceAdapter = GetJobSourceAdapter(definition);
@@ -616,7 +610,7 @@ namespace System.Management.Automation
         /// <param name="sourceAdapter"></param>
         /// <param name="jobSourceAdapterTypes"></param>
         /// <returns></returns>
-        private bool CheckTypeNames(JobSourceAdapter sourceAdapter, string[] jobSourceAdapterTypes)
+        private static bool CheckTypeNames(JobSourceAdapter sourceAdapter, string[] jobSourceAdapterTypes)
         {
             // If no type names were specified then allow all adapter types.
             if (jobSourceAdapterTypes == null ||
@@ -641,9 +635,9 @@ namespace System.Management.Automation
             return false;
         }
 
-        private string GetAdapterName(JobSourceAdapter sourceAdapter)
+        private static string GetAdapterName(JobSourceAdapter sourceAdapter)
         {
-            return (string.IsNullOrEmpty(sourceAdapter.Name) == false ?
+            return (!string.IsNullOrEmpty(sourceAdapter.Name) ?
                 sourceAdapter.Name :
                 sourceAdapter.GetType().ToString());
         }

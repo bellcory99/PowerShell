@@ -1,8 +1,8 @@
-# Copyright (c) Microsoft Corporation. All rights reserved.
+# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 Describe "Native streams behavior with PowerShell" -Tags 'CI' {
     BeforeAll {
-        $powershell = Join-Path -Path $PsHome -ChildPath "pwsh"
+        $powershell = Join-Path -Path $PSHOME -ChildPath "pwsh"
     }
 
     Context "Error stream" {
@@ -12,37 +12,26 @@ Describe "Native streams behavior with PowerShell" -Tags 'CI' {
         $error.Clear()
 
         $command = [string]::Join('', @(
-            '[Console]::Error.Write(\"foo`n`nbar`n`nbaz\"); ',
-            '[Console]::Error.Write(\"middle\"); ',
-            '[Console]::Error.Write(\"foo`n`nbar`n`nbaz\")'
+            '[Console]::Error.Write("foo`n`nbar`n`nbaz"); ',
+            '[Console]::Error.Write("middle"); ',
+            '[Console]::Error.Write("foo`n`nbar`n`nbaz")'
         ))
 
         $out = & $powershell -noprofile -command $command 2>&1
 
         # this check should be the first one, because $error is a global shared variable
-        # This was broken at least in 7.1.5, skipping as it is not a regression.
-        # Verified issue existed in Windows, macOS and Linux.
-        It 'should not add records to $error variable' -Skip {
-            if ($error.Count -ne 0) {
-                $message = [System.Text.StringBuilder]::new()
-                $null = $message.AppendLine('$error.count should be 0, but is ' + $error.count)
-                foreach ($record in $error) {
-                    $errorMessage = Get-Error -InputObject $record | Out-String -Width 9999
-                    $null = $message.AppendLine($errorMessage)
-                }
-
-                throw $message.ToString()
-            }
+        It 'should not add records to $error variable' {
+            $error.Count | Should -Be 0
         }
 
         It 'uses ErrorRecord object to return stderr output' {
             ($out | Measure-Object).Count | Should -BeGreaterThan 1
 
-            $out[0] | Should -BeOfType 'System.Management.Automation.ErrorRecord'
+            $out[0] | Should -BeOfType System.Management.Automation.ErrorRecord
             $out[0].FullyQualifiedErrorId | Should -Be 'NativeCommandError'
 
             $out | Select-Object -Skip 1 | ForEach-Object {
-                $_ | Should -BeOfType 'System.Management.Automation.ErrorRecord'
+                $_ | Should -BeOfType System.Management.Automation.ErrorRecord
                 $_.FullyQualifiedErrorId | Should -Be 'NativeCommandErrorMessage'
             }
         }

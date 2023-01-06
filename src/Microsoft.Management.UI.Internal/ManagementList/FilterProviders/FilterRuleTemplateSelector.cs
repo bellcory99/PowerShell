@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System;
@@ -26,7 +26,7 @@ namespace Microsoft.Management.UI.Internal
         }
 
         /// <summary>
-        /// Selects a template based upon the type of the item and and the
+        /// Selects a template based upon the type of the item and the
         /// corresponding template that is registered in the TemplateDictionary.
         /// </summary>
         /// <param name="item">
@@ -45,11 +45,7 @@ namespace Microsoft.Management.UI.Internal
                 return base.SelectTemplate(item, container);
             }
 
-            Type type = item as Type;
-            if (type == null)
-            {
-                type = item.GetType();
-            }
+            Type type = item as Type ?? item.GetType();
 
             DataTemplate template;
 

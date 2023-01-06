@@ -18,7 +18,7 @@ param (
     [Parameter(Mandatory, ParameterSetName = 'packageSigned')]
     [Parameter(Mandatory, ParameterSetName = 'IncludeSymbols')]
     [Parameter(Mandatory, ParameterSetName = 'Build')]
-    [ValidatePattern("^v\d+\.\d+\.\d+(-\w+(\.\d+)?)?$")]
+    [ValidatePattern("^v\d+\.\d+\.\d+(-\w+(\.\d{1,2})?)?$")]
     [ValidateNotNullOrEmpty()]
     [string]$ReleaseTag,
 
@@ -42,6 +42,11 @@ param (
     [ValidatePattern("-signed.zip$")]
     [string]$BuildZip,
 
+    [Parameter(Mandatory, ParameterSetName = 'packageSigned')]
+    [Parameter(Mandatory, ParameterSetName = 'IncludeSymbols')]
+    [Parameter(Mandatory, ParameterSetName = 'Build')]
+    [ValidateSet('osx-x64', 'osx-arm64')]
+    [string]$Runtime,
 
     [string]$ArtifactName = 'result',
 
@@ -60,7 +65,8 @@ if ($Build -or $PSCmdlet.ParameterSetName -eq 'packageSigned') {
         $semVersion = [System.Management.Automation.SemanticVersion] $version
 
         $metadata = Get-Content "$location/tools/metadata.json" -Raw | ConvertFrom-Json
-        $LTS = $metadata.LTSRelease
+
+        $LTS = $metadata.LTSRelease.Package
 
         Write-Verbose -Verbose -Message "LTS is set to: $LTS"
     }
@@ -68,7 +74,7 @@ if ($Build -or $PSCmdlet.ParameterSetName -eq 'packageSigned') {
 
 Push-Location
 try {
-    $pspackageParams = @{ SkipReleaseChecks = $SkipReleaseChecks }
+    $pspackageParams = @{ SkipReleaseChecks = $SkipReleaseChecks; MacOSRuntime = $Runtime }
     Write-Verbose -Message "Init..." -Verbose
     Set-Location $repoRoot
     Import-Module "$repoRoot/build.psm1"
@@ -98,15 +104,15 @@ try {
         }
     }
 
-    if ($Build.IsPresent) {
-        if ($Symbols.IsPresent) {
-            Start-PSBuild -Configuration 'Release' -Crossgen -NoPSModuleRestore @releaseTagParam
+    if ($Build) {
+        if ($Symbols) {
+            Start-PSBuild -Clean -Configuration 'Release' -NoPSModuleRestore @releaseTagParam -Runtime $Runtime
             $pspackageParams['Type']='zip'
             $pspackageParams['IncludeSymbols']=$Symbols.IsPresent
             Write-Verbose "Starting powershell packaging(zip)..." -Verbose
             Start-PSPackage @pspackageParams @releaseTagParam
         } else {
-            Start-PSBuild -Configuration 'Release' -Crossgen -PSModuleRestore @releaseTagParam
+            Start-PSBuild -Configuration 'Release' -PSModuleRestore @releaseTagParam -Runtime $Runtime
             Start-PSPackage @pspackageParams @releaseTagParam
             switch ($ExtraPackage) {
                 "tar" { Start-PSPackage -Type tar @pspackageParams @releaseTagParam }

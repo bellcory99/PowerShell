@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System;
@@ -36,10 +36,7 @@ namespace Microsoft.Management.UI.Internal
 
             set
             {
-                if (value == null)
-                {
-                    throw new ArgumentNullException("value");
-                }
+                ArgumentNullException.ThrowIfNull(value);
 
                 this.propertyValueGetter = value;
             }
@@ -106,15 +103,9 @@ namespace Microsoft.Management.UI.Internal
         /// </param>
         public override void TransferValues(FilterRule oldRule, FilterRule newRule)
         {
-            if (oldRule == null)
-            {
-                throw new ArgumentNullException("oldRule");
-            }
+            ArgumentNullException.ThrowIfNull(oldRule);
 
-            if (newRule == null)
-            {
-                throw new ArgumentNullException("newRule");
-            }
+            ArgumentNullException.ThrowIfNull(newRule);
 
             if (this.TryTransferValuesAsSingleValueComparableValueFilterRule(oldRule, newRule))
             {
@@ -130,10 +121,7 @@ namespace Microsoft.Management.UI.Internal
         /// </param>
         public override void ClearValues(FilterRule rule)
         {
-            if (rule == null)
-            {
-                throw new ArgumentNullException("rule");
-            }
+            ArgumentNullException.ThrowIfNull(rule);
 
             if (this.TryClearValueFromSingleValueComparableValueFilterRule(rule))
             {
@@ -163,13 +151,9 @@ namespace Microsoft.Management.UI.Internal
         /// </returns>
         public override string GetErrorMessageForInvalidValue(string value, Type typeToParseTo)
         {
-            if (typeToParseTo == null)
-            {
-                throw new ArgumentNullException("typeToParseTo");
-            }
+            ArgumentNullException.ThrowIfNull(typeToParseTo);
 
-            bool isNumericType = false
-                || typeToParseTo == typeof(byte)
+            bool isNumericType = typeToParseTo == typeof(byte)
                 || typeToParseTo == typeof(sbyte)
                 || typeToParseTo == typeof(short)
                 || typeToParseTo == typeof(ushort)
@@ -223,10 +207,7 @@ namespace Microsoft.Management.UI.Internal
             Debug.Assert(rule != null && !string.IsNullOrEmpty(propertyName), "rule and propertyname are not null");
 
             // NOTE: This isn't needed but OACR is complaining
-            if (rule == null)
-            {
-                throw new ArgumentNullException("rule");
-            }
+            ArgumentNullException.ThrowIfNull(rule);
 
             Type ruleType = rule.GetType();
 
@@ -242,10 +223,7 @@ namespace Microsoft.Management.UI.Internal
             Debug.Assert(rule != null && !string.IsNullOrEmpty(propertyName), "rule and propertyname are not null");
 
             // NOTE: This isn't needed but OACR is complaining
-            if (rule == null)
-            {
-                throw new ArgumentNullException("rule");
-            }
+            ArgumentNullException.ThrowIfNull(rule);
 
             Type ruleType = rule.GetType();
 

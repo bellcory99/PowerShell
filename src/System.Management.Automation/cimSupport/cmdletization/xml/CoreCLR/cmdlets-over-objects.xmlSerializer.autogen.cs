@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 #if CORECLR
@@ -6678,10 +6678,7 @@ namespace Microsoft.PowerShell.Cmdletization.Xml
     {
         internal object Deserialize(XmlReader reader)
         {
-            if (reader == null)
-            {
-                throw new ArgumentNullException("reader");
-            }
+            ArgumentNullException.ThrowIfNull(reader);
 
             XmlSerializationReader1 cdxmlSerializationReader = new XmlSerializationReader1(reader);
             return cdxmlSerializationReader.Read50_PowerShellMetadata();

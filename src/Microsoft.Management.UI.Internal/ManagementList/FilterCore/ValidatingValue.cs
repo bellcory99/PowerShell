@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System;
@@ -165,10 +165,7 @@ namespace Microsoft.Management.UI.Internal
         {
             castValue = default(T);
 
-            if (rawValue == null)
-            {
-                throw new ArgumentNullException("rawValue");
-            }
+            ArgumentNullException.ThrowIfNull(rawValue);
 
             if (typeof(T).IsEnum)
             {

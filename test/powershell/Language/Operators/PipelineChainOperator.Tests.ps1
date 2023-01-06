@@ -1,4 +1,4 @@
-# Copyright (c) Microsoft Corporation. All rights reserved.
+# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
 Describe "Experimental Feature: && and || operators - Feature-Enabled" -Tag CI {
@@ -14,12 +14,12 @@ Describe "Experimental Feature: && and || operators - Feature-Enabled" -Tag CI {
             param(
                 [Parameter(ValueFromPipeline)]
                 [object[]]
-                $Input
+                $input
             )
 
-            if ($Input -ne 2)
+            if ($input -ne 2)
             {
-                return $Input
+                return $input
             }
 
             $exception = [System.Exception]::new("NTERROR")
@@ -47,7 +47,7 @@ Describe "Experimental Feature: && and || operators - Feature-Enabled" -Tag CI {
             @{ Statement = 'testexe -returncode -1 || testexe -returncode -2 && testexe -echoargs "A"'; Output = @('-1', '-2') }
             @{ Statement = 'testexe -returncode -1 || testexe -returncode -2 || testexe -echoargs "B"'; Output = @('-1', '-2', 'Arg 0 is <B>') }
 
-            # Native command and succesful cmdlet
+            # Native command and successful cmdlet
             @{ Statement = 'Test-SuccessfulCommand && testexe -returncode 0'; Output = @('SUCCESS', '0') }
             @{ Statement = 'testexe -returncode 0 && Test-SuccessfulCommand'; Output = @('0', 'SUCCESS') }
             @{ Statement = 'Test-SuccessfulCommand && testexe -returncode 1'; Output = @('SUCCESS', '1') }
@@ -222,12 +222,12 @@ filter Test-NonTerminatingError
     param(
         [Parameter(ValueFromPipeline)]
         [object[]]
-        $Input
+        $input
     )
 
-    if ($Input -ne 2)
+    if ($input -ne 2)
     {
-        return $Input
+        return $input
     }
 
     $exception = [System.Exception]::new("NTERROR")
@@ -241,11 +241,11 @@ filter Test-NonTerminatingError
 filter Test-PipelineTerminatingError
 {
     [CmdletBinding()]
-    param([Parameter(ValueFromPipeline)][int[]]$Input)
+    param([Parameter(ValueFromPipeline)][int[]]$input)
 
-    if ($Input -ne 4)
+    if ($input -ne 4)
     {
-        return $Input
+        return $input
     }
 
     $exception = [System.Exception]::new("PIPELINE")
@@ -341,6 +341,6 @@ function Test-FullyTerminatingError
     It "Recognises invalid assignment" {
         {
             Invoke-Expression -Command '$x = $x, $y += $z = testexe -returncode 0 && testexe -returncode 1'
-        } | Should -Throw -ErrorID 'InvalidLeftHandSide,Microsoft.PowerShell.Commands.InvokeExpressionCommand'
+        } | Should -Throw -ErrorId 'InvalidLeftHandSide,Microsoft.PowerShell.Commands.InvokeExpressionCommand'
     }
 }

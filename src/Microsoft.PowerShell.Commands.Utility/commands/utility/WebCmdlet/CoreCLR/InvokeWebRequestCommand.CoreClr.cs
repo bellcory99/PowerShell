@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System;
@@ -13,12 +13,13 @@ namespace Microsoft.PowerShell.Commands
     /// This command makes an HTTP or HTTPS request to a web server and returns the results.
     /// </summary>
     [Cmdlet(VerbsLifecycle.Invoke, "WebRequest", HelpUri = "https://go.microsoft.com/fwlink/?LinkID=2097126", DefaultParameterSetName = "StandardMethod")]
+    [OutputType(typeof(BasicHtmlWebResponseObject))]
     public class InvokeWebRequestCommand : WebRequestPSCmdlet
     {
         #region Virtual Method Overrides
 
         /// <summary>
-        /// Default constructor for InvokeWebRequestCommand.
+        /// Initializes a new instance of the <see cref="InvokeWebRequestCommand"/> class.
         /// </summary>
         public InvokeWebRequestCommand() : base()
         {
@@ -31,13 +32,17 @@ namespace Microsoft.PowerShell.Commands
         /// <param name="response"></param>
         internal override void ProcessResponse(HttpResponseMessage response)
         {
-            if (response == null) { throw new ArgumentNullException("response"); }
+            ArgumentNullException.ThrowIfNull(response);
 
             Stream responseStream = StreamHelper.GetResponseStream(response);
             if (ShouldWriteToPipeline)
             {
                 // creating a MemoryStream wrapper to response stream here to support IsStopping.
-                responseStream = new WebResponseContentMemoryStream(responseStream, StreamHelper.ChunkSize, this);
+                responseStream = new WebResponseContentMemoryStream(
+                    responseStream,
+                    StreamHelper.ChunkSize,
+                    this,
+                    response.Content.Headers.ContentLength.GetValueOrDefault());
                 WebResponseObject ro = WebResponseObjectFactory.GetResponseObject(response, responseStream, this.Context);
                 ro.RelationLink = _relationLink;
                 WriteObject(ro);
@@ -51,7 +56,7 @@ namespace Microsoft.PowerShell.Commands
 
             if (ShouldSaveToOutFile)
             {
-                StreamHelper.SaveStreamToFile(responseStream, QualifiedOutFile, this);
+                StreamHelper.SaveStreamToFile(responseStream, QualifiedOutFile, this, response.Content.Headers.ContentLength.GetValueOrDefault(), _cancelToken.Token);
             }
         }
 

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System;
@@ -51,7 +51,7 @@ namespace PowerShell.Hosting.SDK.Tests
 
                 foreach (dynamic item in results)
                 {
-                    Assert.Equal(6,item);
+                    Assert.Equal(6, item);
                 }
             }
         }
@@ -182,6 +182,19 @@ namespace PowerShell.Hosting.SDK.Tests
             int ret = ConsoleShell.Start("Hello", string.Empty, new string[] { "-noprofile", "-c", "exit 42" });
             Assert.Equal(42, ret);
         }
+
+        /* Test disabled because CommandLineParser is static and can only be intialized once (above in TestConsoleShellScenario)
+        /// <summary>
+        /// ConsoleShell cannot start with both InitialSessionState and -ConfigurationFile argument configurations specified.
+        /// </summary>
+        [Fact]
+        public static void TestConsoleShellConfigConflictError()
+        {
+            var iss = System.Management.Automation.Runspaces.InitialSessionState.CreateDefault2();
+            int ret = ConsoleShell.Start(iss, "BannerText", string.Empty, new string[] { @"-ConfigurationFile ""noneSuch""" });
+            Assert.Equal(70, ret);  // ExitCodeInitFailure.
+        }
+        */
 
         [Fact]
         public static void TestBuiltInModules()

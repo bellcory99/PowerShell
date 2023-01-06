@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System;
@@ -60,11 +60,13 @@ namespace Microsoft.Management.UI.Internal
         /// </summary>
         protected virtual void NotifyFilterExpressionChanged()
         {
+            #pragma warning disable IDE1005 // IDE1005: Delegate invocation can be simplified.
             EventHandler eh = this.FilterExpressionChanged;
             if (eh != null)
             {
                 eh(this, new EventArgs());
             }
+            #pragma warning restore IDE1005s
         }
 
         #endregion
@@ -86,10 +88,7 @@ namespace Microsoft.Management.UI.Internal
 
             set
             {
-                if (value == null)
-                {
-                    throw new ArgumentNullException("value");
-                }
+                ArgumentNullException.ThrowIfNull(value);
 
                 this.parser = value;
             }
@@ -118,10 +117,7 @@ namespace Microsoft.Management.UI.Internal
         /// <exception cref="ArgumentNullException">The specified value is a null reference.</exception>
         protected static FilterExpressionNode ConvertToFilterExpression(ICollection<SearchTextParseResult> searchBoxItems)
         {
-            if (searchBoxItems == null)
-            {
-                throw new ArgumentNullException("searchBoxItems");
-            }
+            ArgumentNullException.ThrowIfNull(searchBoxItems);
 
             if (searchBoxItems.Count == 0)
             {

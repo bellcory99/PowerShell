@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System;
@@ -46,7 +46,7 @@ namespace Microsoft.Management.UI.Internal
         {
             if (!this.IsLoaded)
             {
-                this.Loaded += new RoutedEventHandler(this.ListOrganizerItem_Loaded_SelectItem);
+                this.Loaded += this.ListOrganizerItem_Loaded_SelectItem;
                 this.ApplyTemplate();
                 return;
             }
@@ -153,7 +153,7 @@ namespace Microsoft.Management.UI.Internal
         private void ChangeFromEditToDisplayMode()
         {
             // NOTE : This is to resolve a race condition where clicking
-            // on the rename button causes the the edit box to change and
+            // on the rename button causes the edit box to change and
             // then have re-toggle.
             DependencyObject d = Mouse.DirectlyOver as DependencyObject;
             if (d == null || !(this.renameButton.IsAncestorOf(d) && Mouse.LeftButton == MouseButtonState.Pressed))
@@ -189,7 +189,7 @@ namespace Microsoft.Management.UI.Internal
         {
             if (!this.IsLoaded)
             {
-                this.Loaded += new RoutedEventHandler(this.ListOrganizerItem_Loaded_UpdateTextContentBindings);
+                this.Loaded += this.ListOrganizerItem_Loaded_UpdateTextContentBindings;
                 this.ApplyTemplate();
                 return;
             }
@@ -230,13 +230,13 @@ namespace Microsoft.Management.UI.Internal
         private void AttachToVisualTree()
         {
             this.editBox.IsVisibleChanged += new DependencyPropertyChangedEventHandler(this.EditBox_IsVisibleChanged);
-            this.editBox.KeyDown += new KeyEventHandler(this.EditBox_KeyDown);
-            this.editBox.LostFocus += new RoutedEventHandler(this.EditBox_LostFocus);
+            this.editBox.KeyDown += this.EditBox_KeyDown;
+            this.editBox.LostFocus += this.EditBox_LostFocus;
 
             this.templatedParent = this.TemplatedParent as FrameworkElement;
             if (this.templatedParent != null)
             {
-                this.templatedParent.KeyDown += new KeyEventHandler(this.TemplatedParent_OnKeyDown);
+                this.templatedParent.KeyDown += this.TemplatedParent_OnKeyDown;
             }
         }
 

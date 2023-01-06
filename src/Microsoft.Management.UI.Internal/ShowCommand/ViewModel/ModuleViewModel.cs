@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System;
@@ -67,10 +67,7 @@ namespace Microsoft.PowerShell.Commands.ShowCommandInternal
         /// <param name="importedModules">All loaded modules.</param>
         public ModuleViewModel(string name, Dictionary<string, ShowCommandModuleInfo> importedModules)
         {
-            if (name == null)
-            {
-                throw new ArgumentNullException("name");
-            }
+            ArgumentNullException.ThrowIfNull(name);
 
             this.name = name;
             this.commands = new List<CommandViewModel>();
@@ -188,9 +185,9 @@ namespace Microsoft.PowerShell.Commands.ShowCommandInternal
 
                 if (this.selectedCommand != null)
                 {
-                    this.selectedCommand.PropertyChanged -= new PropertyChangedEventHandler(this.SelectedCommand_PropertyChanged);
-                    this.selectedCommand.HelpNeeded -= new EventHandler<HelpNeededEventArgs>(this.SelectedCommand_HelpNeeded);
-                    this.selectedCommand.ImportModule -= new EventHandler<EventArgs>(this.SelectedCommand_ImportModule);
+                    this.selectedCommand.PropertyChanged -= this.SelectedCommand_PropertyChanged;
+                    this.selectedCommand.HelpNeeded -= this.SelectedCommand_HelpNeeded;
+                    this.selectedCommand.ImportModule -= this.SelectedCommand_ImportModule;
                 }
 
                 this.selectedCommand = value;
@@ -199,9 +196,9 @@ namespace Microsoft.PowerShell.Commands.ShowCommandInternal
 
                 if (this.selectedCommand != null)
                 {
-                    this.selectedCommand.PropertyChanged += new PropertyChangedEventHandler(this.SelectedCommand_PropertyChanged);
-                    this.selectedCommand.HelpNeeded += new EventHandler<HelpNeededEventArgs>(this.SelectedCommand_HelpNeeded);
-                    this.selectedCommand.ImportModule += new EventHandler<EventArgs>(this.SelectedCommand_ImportModule);
+                    this.selectedCommand.PropertyChanged += this.SelectedCommand_PropertyChanged;
+                    this.selectedCommand.HelpNeeded += this.SelectedCommand_HelpNeeded;
+                    this.selectedCommand.ImportModule += this.SelectedCommand_ImportModule;
                     this.IsThereASelectedCommand = true;
                 }
                 else
@@ -373,7 +370,7 @@ namespace Microsoft.PowerShell.Commands.ShowCommandInternal
         }
 
         /// <summary>
-        /// Callled in response to a GUI event that requires the command to be run.
+        /// Called in response to a GUI event that requires the command to be run.
         /// </summary>
         internal void OnRunSelectedCommand()
         {
@@ -435,21 +432,21 @@ namespace Microsoft.PowerShell.Commands.ShowCommandInternal
         /// <returns>Return match result.</returns>
         private static bool MatchesEvenIfInPlural(string commandName, string filter)
         {
-            if (commandName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) != -1)
+            if (commandName.Contains(filter, StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }
 
             if (filter.Length > 5 && filter.EndsWith("es", StringComparison.OrdinalIgnoreCase))
             {
-                filter = filter.Substring(0, filter.Length - 2);
-                return commandName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) != -1;
+                ReadOnlySpan<char> filterSpan = filter.AsSpan(0, filter.Length - 2);
+                return commandName.AsSpan().Contains(filterSpan, StringComparison.OrdinalIgnoreCase);
             }
 
             if (filter.Length > 4 && filter.EndsWith("s", StringComparison.OrdinalIgnoreCase))
             {
-                filter = filter.Substring(0, filter.Length - 1);
-                return commandName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) != -1;
+                ReadOnlySpan<char> filterSpan = filter.AsSpan(0, filter.Length - 1);
+                return commandName.AsSpan().Contains(filterSpan, StringComparison.OrdinalIgnoreCase);
             }
 
             return false;

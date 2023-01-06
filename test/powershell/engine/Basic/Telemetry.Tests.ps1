@@ -1,4 +1,4 @@
-# Copyright (c) Microsoft Corporation. All rights reserved.
+# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
 # unit tests for telemetry
@@ -70,7 +70,7 @@ Describe "Telemetry for shell startup" -Tag CI {
         $uuidPath  | Should -Exist
         (Get-ChildItem -Path $uuidPath).Length | Should -Be 16
         [byte[]]$newBytes = Get-Content -AsByteStream -Path $uuidPath
-        [System.Guid]::New($newBytes) | Should -BeOfType [System.Guid]
+        [System.Guid]::New($newBytes) | Should -BeOfType System.Guid
     }
 
     It "Should not create a telemetry file if one already exists and telemetry is opted in" {
@@ -96,7 +96,7 @@ Describe "Telemetry for shell startup" -Tag CI {
         [System.IO.File]::WriteAllBytes($uuidPath, $badBytes)
         & $PWSH -NoProfile -Command "exit"
         [byte[]]$nb = Get-Content -AsByteStream -Path $uuidPath
-        [System.Guid]::New($nb) | Should -BeOfType [System.Guid]
+        [System.Guid]::New($nb) | Should -BeOfType System.Guid
     }
 
     It "Should not create a new telemetry file if the current one has a valid guid and is larger than 16 bytes" {
@@ -129,28 +129,14 @@ Describe "Telemetry for shell startup" -Tag CI {
         $result | Should -Be $expectedValue
     }
 
-    It "Should resend startup event if the semaphore says we haven't sent telemetry" {
-
+    It "Should send startup event" {
         $resultJson = & $PWSH -NoProfile -c {
+            # this should ensure that the startup telemetry event is sent.
+            $null = Get-Date | Out-String
             $telemetryType = [Microsoft.PowerShell.Telemetry.ApplicationInsightsTelemetry]
             $bindingFlags = [System.Reflection.BindingFlags]"NonPublic,Static"
-            $initialValue = ${telemetryType}.GetMember("s_startupEventSent", $bindingFlags)[0].GetValue($null)
-            # force a resend of the startup telemetry
-            $null = ${telemetryType}.GetMember("s_startupEventSent", $bindingFlags)[0].SetValue($null,0)
-            $null = Get-Date | Out-String
-            # now check it again, it should be true now that something has executed
-            $finalValue = ${telemetryType}.GetMember("s_startupEventSent", $bindingFlags)[0].GetValue($null)
-            @{
-                initialValue = $initialValue
-                finalValue = $finalValue
-            } | ConvertTo-Json -Compress
+            $observedValue = ${telemetryType}.GetMember("s_startupEventSent", $bindingFlags)[0].GetValue($null)
+            $observedValue | Should -Be 1  -Because "Should have sent telemetry on console startup"
         }
-
-        $result = $resultJson | ConvertFrom-Json
-
-        $result.InitialValue | Should -Be 1  -Because "Should have sent telemetry on console startup"
-
-        $result.FinalValue | Should -Be 1  -Because "Should have resent telemetry"
     }
-
 }

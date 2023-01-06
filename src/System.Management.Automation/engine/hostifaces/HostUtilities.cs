@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System.Collections;
@@ -42,7 +42,7 @@ namespace System.Management.Automation
     {
         #region Internal Access
 
-        private static string s_checkForCommandInCurrentDirectoryScript = @"
+        private static readonly string s_checkForCommandInCurrentDirectoryScript = @"
             [System.Diagnostics.DebuggerHidden()]
             param()
 
@@ -58,41 +58,27 @@ namespace System.Management.Automation
             $foundSuggestion
         ";
 
-        private static string s_createCommandExistsInCurrentDirectoryScript = @"
+        private static readonly string s_createCommandExistsInCurrentDirectoryScript = @"
             [System.Diagnostics.DebuggerHidden()]
             param([string] $formatString)
 
             $formatString -f $lastError.TargetObject,"".\$($lastError.TargetObject)""
         ";
 
-        private static string s_getFuzzyMatchedCommands = @"
+        private static readonly string s_getFuzzyMatchedCommands = @"
             [System.Diagnostics.DebuggerHidden()]
             param([string] $formatString)
 
-            $formatString -f [string]::Join(', ', (Get-Command $lastError.TargetObject -UseFuzzyMatch | Select-Object -First 10 -Unique -ExpandProperty Name))
+            $formatString -f [string]::Join(', ', (Get-Command $lastError.TargetObject -UseFuzzyMatching -FuzzyMinimumDistance 1 | Select-Object -First 5 -Unique -ExpandProperty Name))
         ";
 
-        private static List<Hashtable> s_suggestions = InitializeSuggestions();
+        private static readonly List<Hashtable> s_suggestions = InitializeSuggestions();
 
         private static List<Hashtable> InitializeSuggestions()
         {
             var suggestions = new List<Hashtable>(
                 new Hashtable[]
                 {
-                    NewSuggestion(
-                        id: 1,
-                        category: "Transactions",
-                        matchType: SuggestionMatchType.Command,
-                        rule: "^Start-Transaction",
-                        suggestion: SuggestionStrings.Suggestion_StartTransaction,
-                        enabled: true),
-                    NewSuggestion(
-                        id: 2,
-                        category: "Transactions",
-                        matchType: SuggestionMatchType.Command,
-                        rule: "^Use-Transaction",
-                        suggestion: SuggestionStrings.Suggestion_UseTransaction,
-                        enabled: true),
                     NewSuggestion(
                         id: 3,
                         category: "General",
@@ -136,16 +122,6 @@ namespace System.Management.Automation
             returnValue.Properties.Add(new PSNoteProperty("CurrentUserAllHosts", currentUserAllHosts));
             returnValue.Properties.Add(new PSNoteProperty("CurrentUserCurrentHost", currentUserCurrentHost));
             return returnValue;
-        }
-
-        /// <summary>
-        /// Gets an array of commands that can be run sequentially to set $profile and run the profile commands.
-        /// </summary>
-        /// <param name="shellId">The id identifying the host or shell used in profile file names.</param>
-        /// <returns></returns>
-        internal static PSCommand[] GetProfileCommands(string shellId)
-        {
-            return HostUtilities.GetProfileCommands(shellId, false);
         }
 
         /// <summary>
@@ -309,8 +285,7 @@ namespace System.Management.Automation
 
         internal static List<string> GetSuggestion(Runspace runspace)
         {
-            LocalRunspace localRunspace = runspace as LocalRunspace;
-            if (localRunspace == null) { return new List<string>(); }
+            if (!(runspace is LocalRunspace localRunspace)) { return new List<string>(); }
 
             // Get the last value of $?
             bool questionMarkVariableValue = localRunspace.ExecutionContext.QuestionMarkVariableValue;
@@ -563,30 +538,6 @@ namespace System.Management.Automation
         }
 
         /// <summary>
-        /// Create suggestion with string rule and suggestion.
-        /// </summary>
-        /// <param name="id">Identifier for the suggestion.</param>
-        /// <param name="category">Category for the suggestion.</param>
-        /// <param name="matchType">Suggestion match type.</param>
-        /// <param name="rule">Rule to match.</param>
-        /// <param name="suggestion">Suggestion to return.</param>
-        /// <param name="enabled">True if the suggestion is enabled.</param>
-        /// <returns>Hashtable representing the suggestion.</returns>
-        private static Hashtable NewSuggestion(int id, string category, SuggestionMatchType matchType, string rule, string suggestion, bool enabled)
-        {
-            Hashtable result = new Hashtable(StringComparer.CurrentCultureIgnoreCase);
-
-            result["Id"] = id;
-            result["Category"] = category;
-            result["MatchType"] = matchType;
-            result["Rule"] = rule;
-            result["Suggestion"] = suggestion;
-            result["Enabled"] = enabled;
-
-            return result;
-        }
-
-        /// <summary>
         /// Create suggestion with string rule and scriptblock suggestion.
         /// </summary>
         /// <param name="id">Identifier for the suggestion.</param>
@@ -641,15 +592,6 @@ namespace System.Management.Automation
         }
 
         /// <summary>
-        /// Get suggestion text from suggestion scriptblock.
-        /// </summary>
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Need to keep this for legacy reflection based use")]
-        private static string GetSuggestionText(object suggestion, PSModuleInfo invocationModule)
-        {
-            return GetSuggestionText(suggestion, null, invocationModule);
-        }
-
-        /// <summary>
         /// Get suggestion text from suggestion scriptblock with arguments.
         /// </summary>
         private static string GetSuggestionText(object suggestion, object[] suggestionArgs, PSModuleInfo invocationModule)
@@ -701,43 +643,6 @@ namespace System.Management.Automation
             }
 
             return string.Format(CultureInfo.InvariantCulture, "[{0}]: {1}", runspace.ConnectionInfo.ComputerName, basePrompt);
-        }
-
-        internal static bool IsProcessInteractive(InvocationInfo invocationInfo)
-        {
-#if CORECLR
-            return false;
-#else
-            // CommandOrigin != Runspace means it is in a script
-            if (invocationInfo.CommandOrigin != CommandOrigin.Runspace)
-                return false;
-
-            // If we don't own the window handle, we've been invoked
-            // from another process that just calls "PowerShell -Command"
-            if (System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle == IntPtr.Zero)
-                return false;
-
-            // If the window has been idle for less than two seconds,
-            // they're probably still calling "PowerShell -Command"
-            // but from Start-Process, or the StartProcess API
-            try
-            {
-                System.Diagnostics.Process currentProcess = System.Diagnostics.Process.GetCurrentProcess();
-                TimeSpan timeSinceStart = DateTime.Now - currentProcess.StartTime;
-                TimeSpan idleTime = timeSinceStart - currentProcess.TotalProcessorTime;
-
-                // Making it 2 seconds because of things like delayed prompt
-                if (idleTime.TotalSeconds > 2)
-                    return true;
-            }
-            catch (System.ComponentModel.Win32Exception)
-            {
-                // Don't have access to the properties
-                return false;
-            }
-
-            return false;
-#endif
         }
 
         /// <summary>
@@ -800,12 +705,12 @@ namespace System.Management.Automation
         {
             if (command == null)
             {
-                throw new PSArgumentNullException("command");
+                throw new PSArgumentNullException(nameof(command));
             }
 
             if (runspace == null)
             {
-                throw new PSArgumentNullException("runspace");
+                throw new PSArgumentNullException(nameof(runspace));
             }
 
             if ((runspace.Debugger != null) && runspace.Debugger.InBreakpoint)

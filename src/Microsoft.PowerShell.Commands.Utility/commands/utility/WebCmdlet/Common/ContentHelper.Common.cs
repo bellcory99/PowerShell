@@ -1,8 +1,7 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System;
-using System.Linq;
 using System.Management.Automation;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -14,20 +13,6 @@ namespace Microsoft.PowerShell.Commands
 {
     internal static class ContentHelper
     {
-        #region Constants
-
-        // default codepage encoding for web content.  See RFC 2616.
-        private const string _defaultCodePage = "ISO-8859-1";
-
-        #endregion Constants
-
-        #region Fields
-
-        // used to split contentType arguments
-        private static readonly char[] s_contentTypeParamSeparator = { ';' };
-
-        #endregion Fields
-
         #region Internal Methods
 
         internal static string GetContentType(HttpResponseMessage response)
@@ -38,38 +23,13 @@ namespace Microsoft.PowerShell.Commands
 
         internal static Encoding GetDefaultEncoding()
         {
-            return GetEncodingOrDefault((string)null);
-        }
-
-        internal static Encoding GetEncoding(HttpResponseMessage response)
-        {
-            // ContentType may not exist in response header.
-            string charSet = response.Content.Headers.ContentType?.CharSet;
-            return GetEncodingOrDefault(charSet);
-        }
-
-        internal static Encoding GetEncodingOrDefault(string characterSet)
-        {
-            // get the name of the codepage to use for response content
-            string codepage = (string.IsNullOrEmpty(characterSet) ? _defaultCodePage : characterSet);
-            Encoding encoding = null;
-
-            try
-            {
-                encoding = Encoding.GetEncoding(codepage);
-            }
-            catch (ArgumentException)
-            {
-                // 0, default code page
-                encoding = Encoding.GetEncoding(0);
-            }
-
-            return encoding;
+            Encoding encoding = Encoding.UTF8;
+            return encoding;    
         }
 
         internal static StringBuilder GetRawContentHeader(HttpResponseMessage response)
         {
-            StringBuilder raw = new StringBuilder();
+            StringBuilder raw = new();
 
             string protocol = WebResponseHelper.GetProtocol(response);
             if (!string.IsNullOrEmpty(protocol))
@@ -83,7 +43,7 @@ namespace Microsoft.PowerShell.Commands
             HttpHeaders[] headerCollections =
             {
                 response.Headers,
-                response.Content == null ? null : response.Content.Headers
+                response.Content?.Headers
             };
 
             foreach (var headerCollection in headerCollections)
@@ -207,7 +167,7 @@ namespace Microsoft.PowerShell.Commands
             if (string.IsNullOrEmpty(contentType))
                 return null;
 
-            string sig = contentType.Split(s_contentTypeParamSeparator, 2)[0].ToUpperInvariant();
+            string sig = contentType.Split(';', 2)[0].ToUpperInvariant();
             return (sig);
         }
 

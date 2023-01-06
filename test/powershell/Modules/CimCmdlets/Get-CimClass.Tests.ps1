@@ -1,4 +1,4 @@
-# Copyright (c) Microsoft Corporation. All rights reserved.
+# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
 Describe 'Get-CimClass' -Tags "CI" {
@@ -26,5 +26,10 @@ Describe 'Get-CimClass' -Tags "CI" {
 Describe 'Get-CimClass' -Tags @("Feature") {
     It 'can retrieve a class when a method is provided' -Pending:(-not $IsWindows) {
         Get-CimClass -MethodName Reboot | Should -Not -BeNullOrEmpty
+    }
+
+    It 'can retrieve class amended qualifiers' -Pending:(-not $IsWindows) {
+        $a = Get-CimClass -Class 'Win32_LogicalDisk' -Amended
+        $a.CimClassProperties['DriveType'].Qualifiers.Item('Values').Value.Count | Should -Be 7
     }
 }

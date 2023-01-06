@@ -126,6 +126,11 @@
             <BooleanProperty Name="Enabled">False</BooleanProperty>
           </RuleSettings>
         </Rule>
+        <Rule Name="NonPrivateReadonlyFieldsMustBeginWithUpperCaseLetter">
+          <RuleSettings>
+            <BooleanProperty Name="Enabled">False</BooleanProperty>
+          </RuleSettings>
+        </Rule>
       </Rules>
       <AnalyzerSettings>
         <CollectionProperty Name="Hungarian">
@@ -157,6 +162,7 @@
           <Value>op</Value>
           <Value>my</Value>
           <Value>sb</Value>
+          <Value>vt</Value>
         </CollectionProperty>
       </AnalyzerSettings>
     </Analyzer>

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System;
@@ -48,15 +48,9 @@ namespace Microsoft.PowerShell.Commands.ShowCommandInternal
         /// <param name="parameterSetName">The name of the parameter set this parameter is in.</param>
         public ParameterViewModel(ShowCommandParameterInfo parameter, string parameterSetName)
         {
-            if (parameter == null)
-            {
-                throw new ArgumentNullException("parameter");
-            }
+            ArgumentNullException.ThrowIfNull(parameter);
 
-            if (parameterSetName == null)
-            {
-                throw new ArgumentNullException("parameterSetName");
-            }
+            ArgumentNullException.ThrowIfNull(parameterSetName);
 
             this.parameter = parameter;
             this.parameterSetName = parameterSetName;
@@ -268,11 +262,13 @@ namespace Microsoft.PowerShell.Commands.ShowCommandInternal
         /// <param name="propertyName">The changed property.</param>
         private void OnNotifyPropertyChanged(string propertyName)
         {
+            #pragma warning disable IDE1005 // IDE1005: Delegate invocation can be simplified.
             PropertyChangedEventHandler handler = this.PropertyChanged;
             if (handler != null)
             {
                 handler(this, new PropertyChangedEventArgs(propertyName));
             }
+            #pragma warning restore IDE1005
         }
     }
 }

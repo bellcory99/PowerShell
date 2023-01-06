@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System;
@@ -23,10 +23,7 @@ namespace Microsoft.Management.UI.Internal
         /// <returns>The formatted string.</returns>
         public object Convert(object value, Type targetType, Object parameter, CultureInfo culture)
         {
-            if (parameter == null)
-            {
-                throw new ArgumentNullException("parameter");
-            }
+            ArgumentNullException.ThrowIfNull(parameter);
 
             string str = (string)value;
             string formatString = (string)parameter;

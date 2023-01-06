@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System;
@@ -25,7 +25,7 @@ namespace Microsoft.Management.UI.Internal
         }
 
         /// <summary>
-        /// Gets a string that indentifies which group this
+        /// Gets a string that identifies which group this
         /// item belongs to.
         /// </summary>
         public string GroupId
@@ -79,10 +79,7 @@ namespace Microsoft.Management.UI.Internal
         /// </param>
         public FilterRulePanelItem(FilterRule rule, string groupId)
         {
-            if (rule == null)
-            {
-                throw new ArgumentNullException("rule");
-            }
+            ArgumentNullException.ThrowIfNull(rule);
 
             if (string.IsNullOrEmpty(groupId))
             {
@@ -107,11 +104,15 @@ namespace Microsoft.Management.UI.Internal
         {
             Debug.Assert(!string.IsNullOrEmpty(propertyName), "not null");
 
+            #pragma warning disable IDE1005 // IDE1005: Delegate invocation can be simplified.
+
             PropertyChangedEventHandler eh = this.PropertyChanged;
             if (eh != null)
             {
                 eh(this, new PropertyChangedEventArgs(propertyName));
             }
+
+            #pragma warning restore IDE1005s
         }
 
         #endregion Public Methods

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System;
@@ -68,10 +68,7 @@ namespace Microsoft.Management.UI.Internal
         /// <param name="createDefaultBinding">Whether the column should create a default binding using the specified data's property.</param>
         public InnerListColumn(UIPropertyGroupDescription dataDescription, bool isVisible, bool createDefaultBinding)
         {
-            if (dataDescription == null)
-            {
-                throw new ArgumentNullException("dataDescription");
-            }
+            ArgumentNullException.ThrowIfNull(dataDescription);
 
             GridViewColumnHeader header = new GridViewColumnHeader();
             header.Content = dataDescription.DisplayContent;

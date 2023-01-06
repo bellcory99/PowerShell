@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System.Collections;
@@ -28,7 +28,7 @@ namespace System.Management.Automation.Internal
         {
             if (commandRuntime == null)
             {
-                throw PSTraceSource.NewArgumentNullException("commandRuntime");
+                throw PSTraceSource.NewArgumentNullException(nameof(commandRuntime));
             }
 
             _commandRuntime = commandRuntime;
@@ -59,7 +59,7 @@ namespace System.Management.Automation.Internal
         /// </summary>
         /// <remarks>
         /// This parameter tells the command to provide Programmer/Support type
-        /// messages to understand what is really occuring and give the user the
+        /// messages to understand what is really occurring and give the user the
         /// opportunity to stop or debug the situation.
         /// </remarks>
         [Parameter]
@@ -234,7 +234,7 @@ namespace System.Management.Automation.Internal
 
         #endregion parameters
 
-        private MshCommandRuntime _commandRuntime;
+        private readonly MshCommandRuntime _commandRuntime;
 
         internal class ValidateVariableName : ValidateArgumentsAttribute
         {
@@ -261,4 +261,3 @@ namespace System.Management.Automation.Internal
         }
     }
 }
-

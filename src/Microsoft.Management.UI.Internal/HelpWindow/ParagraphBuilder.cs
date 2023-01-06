@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System;
@@ -43,10 +43,7 @@ namespace Microsoft.Management.UI.Internal
         /// <param name="paragraph">Paragraph we will be adding lines to in BuildParagraph.</param>
         internal ParagraphBuilder(Paragraph paragraph)
         {
-            if (paragraph == null)
-            {
-                throw new ArgumentNullException("paragraph");
-            }
+            ArgumentNullException.ThrowIfNull(paragraph);
 
             this.paragraph = paragraph;
             this.boldSpans = new List<TextSpan>();
@@ -128,7 +125,7 @@ namespace Microsoft.Management.UI.Internal
         }
 
         /// <summary>
-        /// Highlights all ocurrences of <paramref name="search"/>.
+        /// Highlights all occurrences of <paramref name="search"/>.
         /// This is called after all calls to AddText have been made.
         /// </summary>
         /// <param name="search">Search string.</param>
@@ -185,10 +182,7 @@ namespace Microsoft.Management.UI.Internal
         /// <param name="bold">True if the text should be bold.</param>
         internal void AddText(string str, bool bold)
         {
-            if (str == null)
-            {
-                throw new ArgumentNullException("str");
-            }
+            ArgumentNullException.ThrowIfNull(str);
 
             if (str.Length == 0)
             {
@@ -249,7 +243,7 @@ namespace Microsoft.Management.UI.Internal
         /// </summary>
         /// <param name="currentSpanIndex">Current index within <paramref name="allSpans"/>.</param>
         /// <param name="currentSpan">Current span within <paramref name="allSpans"/>.</param>
-        /// <param name="caracterPosition">Caracter position. This comes from a position within this.textBuilder.</param>
+        /// <param name="caracterPosition">Character position. This comes from a position within this.textBuilder.</param>
         /// <param name="allSpans">The collection of spans. This is either this.boldSpans or this.highlightedSpans.</param>
         private static void MoveSpanToPosition(ref int currentSpanIndex, ref TextSpan? currentSpan, int caracterPosition, List<TextSpan> allSpans)
         {

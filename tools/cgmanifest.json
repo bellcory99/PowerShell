@@ -1,11 +1,32 @@
 {
+  "$schema": "https://json.schemastore.org/component-detection-manifest.json",
   "Registrations": [
     {
       "Component": {
         "Type": "nuget",
         "Nuget": {
+          "Name": "DotNetAnalyzers.DocumentationAnalyzers.Unstable",
+          "Version": "1.0.0.59"
+        }
+      },
+      "DevelopmentDependency": true
+    },
+    {
+      "Component": {
+        "Type": "nuget",
+        "Nuget": {
+          "Name": "DotNetAnalyzers.DocumentationAnalyzers",
+          "Version": "1.0.0-beta.59"
+        }
+      },
+      "DevelopmentDependency": true
+    },
+    {
+      "Component": {
+        "Type": "nuget",
+        "Nuget": {
           "Name": "Markdig.Signed",
-          "Version": "0.18.3"
+          "Version": "0.30.4"
         }
       },
       "DevelopmentDependency": false
@@ -15,7 +36,17 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "Microsoft.ApplicationInsights",
-          "Version": "2.13.1"
+          "Version": "2.21.0"
+        }
+      },
+      "DevelopmentDependency": false
+    },
+    {
+      "Component": {
+        "Type": "nuget",
+        "Nuget": {
+          "Name": "Microsoft.Bcl.AsyncInterfaces",
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -25,7 +56,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "Microsoft.CodeAnalysis.Analyzers",
-          "Version": "2.9.6"
+          "Version": "3.3.3"
         }
       },
       "DevelopmentDependency": true
@@ -35,7 +66,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "Microsoft.CodeAnalysis.Common",
-          "Version": "3.4.0"
+          "Version": "4.4.0"
         }
       },
       "DevelopmentDependency": false
@@ -45,7 +76,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "Microsoft.CodeAnalysis.CSharp",
-          "Version": "3.4.0"
+          "Version": "4.4.0"
         }
       },
       "DevelopmentDependency": false
@@ -54,8 +85,28 @@
       "Component": {
         "Type": "nuget",
         "Nuget": {
+          "Name": "Microsoft.CodeAnalysis.NetAnalyzers",
+          "Version": "7.0.0"
+        }
+      },
+      "DevelopmentDependency": true
+    },
+    {
+      "Component": {
+        "Type": "nuget",
+        "Nuget": {
           "Name": "Microsoft.CSharp",
           "Version": "4.3.0"
+        }
+      },
+      "DevelopmentDependency": false
+    },
+    {
+      "Component": {
+        "Type": "nuget",
+        "Nuget": {
+          "Name": "Microsoft.Extensions.ObjectPool",
+          "Version": "7.0.1"
         }
       },
       "DevelopmentDependency": false
@@ -78,7 +129,7 @@
           "Version": "2.0.0"
         }
       },
-      "DevelopmentDependency": false
+      "DevelopmentDependency": true
     },
     {
       "Component": {
@@ -95,7 +146,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "Microsoft.NETCore.Platforms",
-          "Version": "3.1.9"
+          "Version": "1.1.0"
         }
       },
       "DevelopmentDependency": false
@@ -114,8 +165,8 @@
       "Component": {
         "Type": "nuget",
         "Nuget": {
-          "Name": "Microsoft.NETCore.Windows.ApiSets",
-          "Version": "1.0.1"
+          "Name": "Microsoft.PowerShell.MarkdownRender",
+          "Version": "7.2.0"
         }
       },
       "DevelopmentDependency": false
@@ -125,7 +176,17 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "Microsoft.PowerShell.Native",
-          "Version": "7.0.0"
+          "Version": "7.3.1"
+        }
+      },
+      "DevelopmentDependency": false
+    },
+    {
+      "Component": {
+        "Type": "nuget",
+        "Nuget": {
+          "Name": "Microsoft.Security.Extensions",
+          "Version": "1.2.0"
         }
       },
       "DevelopmentDependency": false
@@ -135,7 +196,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "Microsoft.Win32.Registry.AccessControl",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -145,7 +206,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "Microsoft.Win32.Registry",
-          "Version": "4.7.0"
+          "Version": "5.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -155,7 +216,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "Microsoft.Win32.SystemEvents",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -165,7 +226,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "Microsoft.Windows.Compatibility",
-          "Version": "3.1.2"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -175,7 +236,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "Namotion.Reflection",
-          "Version": "1.0.13"
+          "Version": "2.1.0"
         }
       },
       "DevelopmentDependency": false
@@ -185,7 +246,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "Newtonsoft.Json",
-          "Version": "12.0.3"
+          "Version": "13.0.2"
         }
       },
       "DevelopmentDependency": false
@@ -195,7 +256,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "NJsonSchema",
-          "Version": "10.1.26"
+          "Version": "10.8.0"
         }
       },
       "DevelopmentDependency": false
@@ -355,7 +416,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "runtime.linux-arm.runtime.native.System.IO.Ports",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -365,7 +426,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "runtime.linux-arm64.runtime.native.System.IO.Ports",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -375,7 +436,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "runtime.linux-x64.runtime.native.System.IO.Ports",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -395,7 +456,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "runtime.native.System.IO.Ports",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -444,8 +505,18 @@
       "Component": {
         "Type": "nuget",
         "Nuget": {
+          "Name": "runtime.osx-arm64.runtime.native.System.IO.Ports",
+          "Version": "7.0.0"
+        }
+      },
+      "DevelopmentDependency": false
+    },
+    {
+      "Component": {
+        "Type": "nuget",
+        "Nuget": {
           "Name": "runtime.osx-x64.runtime.native.System.IO.Ports",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -584,26 +655,6 @@
       "Component": {
         "Type": "nuget",
         "Nuget": {
-          "Name": "runtime.win7-x64.Microsoft.NETCore.Windows.ApiSets",
-          "Version": "1.0.1"
-        }
-      },
-      "DevelopmentDependency": false
-    },
-    {
-      "Component": {
-        "Type": "nuget",
-        "Nuget": {
-          "Name": "runtime.win7-x86.Microsoft.NETCore.Windows.ApiSets",
-          "Version": "1.0.1"
-        }
-      },
-      "DevelopmentDependency": false
-    },
-    {
-      "Component": {
-        "Type": "nuget",
-        "Nuget": {
           "Name": "runtime.win7.System.Private.Uri",
           "Version": "4.3.0"
         }
@@ -614,8 +665,28 @@
       "Component": {
         "Type": "nuget",
         "Nuget": {
+          "Name": "StyleCop.Analyzers.Unstable",
+          "Version": "1.2.0.435"
+        }
+      },
+      "DevelopmentDependency": true
+    },
+    {
+      "Component": {
+        "Type": "nuget",
+        "Nuget": {
+          "Name": "StyleCop.Analyzers",
+          "Version": "1.1.118"
+        }
+      },
+      "DevelopmentDependency": true
+    },
+    {
+      "Component": {
+        "Type": "nuget",
+        "Nuget": {
           "Name": "System.CodeDom",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -625,7 +696,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Collections.Immutable",
-          "Version": "1.5.0"
+          "Version": "6.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -645,7 +716,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.ComponentModel.Composition.Registration",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -655,7 +726,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.ComponentModel.Composition",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -665,17 +736,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Configuration.ConfigurationManager",
-          "Version": "4.7.0"
-        }
-      },
-      "DevelopmentDependency": false
-    },
-    {
-      "Component": {
-        "Type": "nuget",
-        "Nuget": {
-          "Name": "System.Data.DataSetExtensions",
-          "Version": "4.5.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -685,7 +746,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Data.Odbc",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -695,7 +756,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Data.OleDb",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -705,7 +766,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Data.SqlClient",
-          "Version": "4.8.3"
+          "Version": "4.8.5"
         }
       },
       "DevelopmentDependency": false
@@ -725,7 +786,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Diagnostics.DiagnosticSource",
-          "Version": "4.6.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -735,7 +796,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Diagnostics.EventLog",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -745,7 +806,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Diagnostics.PerformanceCounter",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -755,7 +816,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.DirectoryServices.AccountManagement",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -765,7 +826,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.DirectoryServices.Protocols",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -775,7 +836,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.DirectoryServices",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -785,7 +846,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Drawing.Common",
-          "Version": "4.7.3"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -804,6 +865,16 @@
       "Component": {
         "Type": "nuget",
         "Nuget": {
+          "Name": "System.Formats.Asn1",
+          "Version": "7.0.0"
+        }
+      },
+      "DevelopmentDependency": false
+    },
+    {
+      "Component": {
+        "Type": "nuget",
+        "Nuget": {
           "Name": "System.Globalization",
           "Version": "4.3.0"
         }
@@ -814,28 +885,8 @@
       "Component": {
         "Type": "nuget",
         "Nuget": {
-          "Name": "System.IO.FileSystem.AccessControl",
-          "Version": "4.7.0"
-        }
-      },
-      "DevelopmentDependency": false
-    },
-    {
-      "Component": {
-        "Type": "nuget",
-        "Nuget": {
           "Name": "System.IO.Packaging",
-          "Version": "4.7.0"
-        }
-      },
-      "DevelopmentDependency": false
-    },
-    {
-      "Component": {
-        "Type": "nuget",
-        "Nuget": {
-          "Name": "System.IO.Pipes.AccessControl",
-          "Version": "4.5.1"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -845,7 +896,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.IO.Ports",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -885,7 +936,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Management",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -895,7 +946,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Memory",
-          "Version": "4.5.3"
+          "Version": "4.5.5"
         }
       },
       "DevelopmentDependency": false
@@ -905,7 +956,17 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Net.Http.WinHttpHandler",
-          "Version": "4.7.2"
+          "Version": "7.0.0"
+        }
+      },
+      "DevelopmentDependency": false
+    },
+    {
+      "Component": {
+        "Type": "nuget",
+        "Nuget": {
+          "Name": "System.Numerics.Vectors",
+          "Version": "4.5.0"
         }
       },
       "DevelopmentDependency": false
@@ -925,7 +986,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Private.ServiceModel",
-          "Version": "4.7.0"
+          "Version": "4.10.0"
         }
       },
       "DevelopmentDependency": false
@@ -945,7 +1006,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Reflection.Context",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -955,7 +1016,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Reflection.DispatchProxy",
-          "Version": "4.5.0"
+          "Version": "4.7.1"
         }
       },
       "DevelopmentDependency": false
@@ -965,7 +1026,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Reflection.Emit.ILGeneration",
-          "Version": "4.7.0"
+          "Version": "4.3.0"
         }
       },
       "DevelopmentDependency": false
@@ -975,7 +1036,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Reflection.Emit.Lightweight",
-          "Version": "4.7.0"
+          "Version": "4.3.0"
         }
       },
       "DevelopmentDependency": false
@@ -985,7 +1046,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Reflection.Emit",
-          "Version": "4.7.0"
+          "Version": "4.3.0"
         }
       },
       "DevelopmentDependency": false
@@ -1005,7 +1066,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Reflection.Metadata",
-          "Version": "1.6.0"
+          "Version": "5.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -1055,7 +1116,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Runtime.Caching",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -1065,7 +1126,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Runtime.CompilerServices.Unsafe",
-          "Version": "4.7.1"
+          "Version": "6.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -1115,17 +1176,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Security.AccessControl",
-          "Version": "4.7.0"
-        }
-      },
-      "DevelopmentDependency": false
-    },
-    {
-      "Component": {
-        "Type": "nuget",
-        "Nuget": {
-          "Name": "System.Security.Cryptography.Cng",
-          "Version": "4.7.0"
+          "Version": "6.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -1135,7 +1186,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Security.Cryptography.Pkcs",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -1145,7 +1196,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Security.Cryptography.ProtectedData",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -1155,7 +1206,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Security.Cryptography.Xml",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -1165,7 +1216,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Security.Permissions",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -1175,7 +1226,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Security.Principal.Windows",
-          "Version": "4.7.0"
+          "Version": "5.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -1185,7 +1236,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.ServiceModel.Duplex",
-          "Version": "4.7.0"
+          "Version": "4.10.0"
         }
       },
       "DevelopmentDependency": false
@@ -1195,7 +1246,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.ServiceModel.Http",
-          "Version": "4.7.0"
+          "Version": "4.10.0"
         }
       },
       "DevelopmentDependency": false
@@ -1205,7 +1256,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.ServiceModel.NetTcp",
-          "Version": "4.7.0"
+          "Version": "4.10.0"
         }
       },
       "DevelopmentDependency": false
@@ -1215,7 +1266,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.ServiceModel.Primitives",
-          "Version": "4.7.0"
+          "Version": "4.10.0"
         }
       },
       "DevelopmentDependency": false
@@ -1225,7 +1276,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.ServiceModel.Security",
-          "Version": "4.7.0"
+          "Version": "4.10.0"
         }
       },
       "DevelopmentDependency": false
@@ -1235,7 +1286,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.ServiceModel.Syndication",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -1245,7 +1296,17 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.ServiceProcess.ServiceController",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
+        }
+      },
+      "DevelopmentDependency": false
+    },
+    {
+      "Component": {
+        "Type": "nuget",
+        "Nuget": {
+          "Name": "System.Speech",
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -1255,7 +1316,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Text.Encoding.CodePages",
-          "Version": "4.7.1"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -1275,7 +1336,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Text.Encodings.Web",
-          "Version": "4.7.2"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -1285,7 +1346,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Threading.AccessControl",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false
@@ -1295,7 +1356,7 @@
         "Type": "nuget",
         "Nuget": {
           "Name": "System.Threading.Tasks.Extensions",
-          "Version": "4.5.3"
+          "Version": "4.5.4"
         }
       },
       "DevelopmentDependency": false
@@ -1324,8 +1385,18 @@
       "Component": {
         "Type": "nuget",
         "Nuget": {
+          "Name": "System.Web.Services.Description",
+          "Version": "4.10.0"
+        }
+      },
+      "DevelopmentDependency": false
+    },
+    {
+      "Component": {
+        "Type": "nuget",
+        "Nuget": {
           "Name": "System.Windows.Extensions",
-          "Version": "4.7.0"
+          "Version": "7.0.0"
         }
       },
       "DevelopmentDependency": false

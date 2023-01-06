@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System;
@@ -59,15 +59,9 @@ namespace Microsoft.Management.UI.Internal
             ICollection<InnerListColumn> availableColumns)
             : this()
         {
-            if (columns == null)
-            {
-                throw new ArgumentNullException("columns");
-            }
-
-            if (availableColumns == null)
-            {
-                throw new ArgumentNullException("availableColumns");
-            }
+            ArgumentNullException.ThrowIfNull(columns);
+            
+            ArgumentNullException.ThrowIfNull(availableColumns);
 
             // Add visible columns to Selected list, preserving order
             // Note that availableColumns is not necessarily in the order

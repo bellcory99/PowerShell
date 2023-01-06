@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System;
@@ -62,7 +62,9 @@ namespace Microsoft.Management.UI.Internal
         /// </remarks>
         public object Convert(object[] values, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
-            if (values == null || values.Length != 1)
+            ArgumentNullException.ThrowIfNull(values);
+
+            if (values.Length != 1)
             {
                 throw new ArgumentNullException("values");
             }

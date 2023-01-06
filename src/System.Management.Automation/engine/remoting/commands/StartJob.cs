@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System;
@@ -484,7 +484,7 @@ namespace Microsoft.PowerShell.Commands
         /// Gets or sets an initial working directory for the powershell background job.
         /// </summary>
         [Parameter]
-        [ValidateNotNullOrEmpty]
+        [ValidateNotNullOrWhiteSpace]
         public string WorkingDirectory { get; set; }
 
         /// <summary>
@@ -505,14 +505,19 @@ namespace Microsoft.PowerShell.Commands
         [ValidateNotNullOrEmpty]
         public virtual Version PSVersion
         {
-            get { return _psVersion; }
+            get
+            {
+                return _psVersion;
+            }
 
             set
             {
-                RemotingCommandUtil.CheckPSVersion(value);
-
-                // Check if specified version of PowerShell is installed
-                RemotingCommandUtil.CheckIfPowerShellVersionIsInstalled(value);
+                // PSVersion value can only be 5.1 for Start-Job.
+                if (!(value.Major == 5 && value.Minor == 1))
+                {
+                    throw new ArgumentException(
+                        StringUtil.Format(RemotingErrorIdStrings.PSVersionParameterOutOfRange, value, "PSVersion"));
+                }
 
                 _psVersion = value;
             }
@@ -596,16 +601,16 @@ namespace Microsoft.PowerShell.Commands
                 ThrowTerminatingError(errorRecord);
             }
 
-            if (WorkingDirectory != null && !Directory.Exists(WorkingDirectory))
+            if (WorkingDirectory != null && !InvokeProvider.Item.IsContainer(WorkingDirectory))
             {
-                    string message = StringUtil.Format(RemotingErrorIdStrings.StartJobWorkingDirectoryNotFound, WorkingDirectory);
-                    var errorRecord = new ErrorRecord(
-                        new DirectoryNotFoundException(message),
-                        "DirectoryNotFoundException",
-                        ErrorCategory.InvalidOperation,
-                        targetObject: null);
+                string message = StringUtil.Format(RemotingErrorIdStrings.StartJobWorkingDirectoryNotFound, WorkingDirectory);
+                var errorRecord = new ErrorRecord(
+                    new DirectoryNotFoundException(message),
+                    "DirectoryNotFoundException",
+                    ErrorCategory.InvalidOperation,
+                    targetObject: null);
 
-                    ThrowTerminatingError(errorRecord);
+                ThrowTerminatingError(errorRecord);
             }
 
             if (WorkingDirectory == null)

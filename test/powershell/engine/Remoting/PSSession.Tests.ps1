@@ -1,4 +1,4 @@
-# Copyright (c) Microsoft Corporation. All rights reserved.
+# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
 #
@@ -66,12 +66,12 @@ Describe "SkipCACheck and SkipCNCheck PSSession options are required for New-PSS
         },
         @{
             Name = 'Verifies expected error when SkipCACheck option is missing'
-            ScriptBlock = { New-PSSession -cn localhost -Credential $cred -Authentication Basic -UseSSl -SessionOption $soSkipCN }
+            ScriptBlock = { New-PSSession -cn localhost -Credential $cred -Authentication Basic -UseSSL -SessionOption $soSkipCN }
             ExpectedErrorCode = 825
         },
         @{
             Name = 'Verifies expected error when SkipCNCheck option is missing'
-            ScriptBlock = { New-PSSession -cn localhost -Credential $cred -Authentication Basic -UseSSl -SessionOption $soSkipCA }
+            ScriptBlock = { New-PSSession -cn localhost -Credential $cred -Authentication Basic -UseSSL -SessionOption $soSkipCA }
             ExpectedErrorCode = 825
         }
     )
@@ -79,14 +79,8 @@ Describe "SkipCACheck and SkipCNCheck PSSession options are required for New-PSS
     It "<Name>" -TestCases $testCases {
         param ($scriptBlock, $expectedErrorCode)
 
-        $platformInfo = Get-PlatformInfo
-        if (
-            ($platformInfo.Platform -match "alpine|raspbian") -or
-            ($platformInfo.Platform -eq "debian" -and ($platformInfo.Version -eq '10' -or $platformInfo.Version -eq '')) -or # debian 11 has empty Version ID
-            ($platformInfo.Platform -eq 'centos' -and $platformInfo.Version -eq '8') -or
-            ($platformInfo.Platform -eq 'ubuntu' -and $platformInfo.Version -eq '20.04')
-        ) {
-            Set-ItResult -Skipped -Because "MI library not available for Alpine, Raspberry Pi, Debian 10 and 11, and CentOS 8"
+        if ( -not (Get-WsManSupport)) {
+            Set-ItResult -Skipped -Because "MI library not available for this platform"
             return
         }
 

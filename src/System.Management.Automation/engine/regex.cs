@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 #pragma warning disable 1634, 1691
@@ -43,7 +43,7 @@ namespace System.Management.Automation
         /// Specifies culture-invariant matching.
         /// </summary>
         CultureInvariant = 4
-    };
+    }
 
     /// <summary>
     /// Represents a wildcard pattern.
@@ -57,11 +57,11 @@ namespace System.Management.Automation
         // The size is less than MaxShortPath = 260.
         private const int StackAllocThreshold = 256;
 
+        // chars that are considered special in a wildcard pattern
+        private const string SpecialChars = "*?[]`";
+
         // we convert a wildcard pattern to a predicate
         private Predicate<string> _isMatch;
-
-        // chars that are considered special in a wildcard pattern
-        private static readonly char[] s_specialChars = new[] { '*', '?', '[', ']', '`' };
 
         // static match-all delegate that is shared by all WildcardPattern instances
         private static readonly Predicate<string> s_matchAll = _ => true;
@@ -125,7 +125,7 @@ namespace System.Management.Automation
         public static WildcardPattern Get(string pattern, WildcardOptions options)
         {
             if (pattern == null)
-                throw PSTraceSource.NewArgumentNullException("pattern");
+                throw PSTraceSource.NewArgumentNullException(nameof(pattern));
 
             if (pattern.Length == 1 && pattern[0] == '*')
                 return s_matchAllIgnoreCasePattern;
@@ -173,8 +173,8 @@ namespace System.Management.Automation
                 return;
             }
 
-            int index = Pattern.IndexOfAny(s_specialChars);
-            if (index == -1)
+            int index = Pattern.AsSpan().IndexOfAny(SpecialChars);
+            if (index < 0)
             {
                 // No special characters present in the pattern, so we can just do a string comparison.
                 _isMatch = str => string.Equals(str, Pattern, GetStringComparison());
@@ -184,7 +184,7 @@ namespace System.Management.Automation
             if (index == Pattern.Length - 1 && Pattern[index] == '*')
             {
                 // No special characters present in the pattern before last position and last character is asterisk.
-                var patternWithoutAsterisk = Pattern.AsMemory().Slice(0, index);
+                var patternWithoutAsterisk = Pattern.AsMemory(0, index);
                 _isMatch = str => str.AsSpan().StartsWith(patternWithoutAsterisk.Span, GetStringComparison());
                 return;
             }
@@ -325,7 +325,7 @@ namespace System.Management.Automation
         /// converted to their unescaped form.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        /// If <paramref name="pattern" /> is null.
+        /// If <paramref name="pattern"/> is null.
         /// </exception>
         public static string Unescape(string pattern)
         {
@@ -447,16 +447,13 @@ namespace System.Management.Automation
         internal WildcardPatternException(ErrorRecord errorRecord)
             : base(RetrieveMessage(errorRecord))
         {
-            if (errorRecord == null)
-            {
-                throw new ArgumentNullException("errorRecord");
-            }
+            ArgumentNullException.ThrowIfNull(errorRecord);
 
             _errorRecord = errorRecord;
         }
 
         [NonSerialized]
-        private ErrorRecord _errorRecord;
+        private readonly ErrorRecord _errorRecord;
 
         /// <summary>
         /// Constructs an instance of the WildcardPatternException object.
@@ -729,7 +726,7 @@ namespace System.Management.Automation
 
             return e;
         }
-    };
+    }
 
     /// <summary>
     /// Convert a string with wild cards into its equivalent regex.
@@ -752,6 +749,7 @@ namespace System.Management.Automation
         private RegexOptions _regexOptions;
 
         private const string regexChars = "()[.?*{}^$+|\\"; // ']' is missing on purpose
+
         private static bool IsRegexChar(char ch)
         {
             for (int i = 0; i < regexChars.Length; i++)
@@ -1000,7 +998,7 @@ namespace System.Management.Automation
             }
         }
 
-        private class PatternPositionsVisitor : IDisposable
+        private sealed class PatternPositionsVisitor : IDisposable
         {
             private readonly int _lengthOfPattern;
 
@@ -1121,7 +1119,7 @@ namespace System.Management.Automation
             }
         }
 
-        private class LiteralCharacterElement : QuestionMarkElement
+        private sealed class LiteralCharacterElement : QuestionMarkElement
         {
             private readonly char _literalCharacter;
 
@@ -1147,7 +1145,7 @@ namespace System.Management.Automation
             }
         }
 
-        private class BracketExpressionElement : QuestionMarkElement
+        private sealed class BracketExpressionElement : QuestionMarkElement
         {
             private readonly Regex _regex;
 
@@ -1172,7 +1170,7 @@ namespace System.Management.Automation
             }
         }
 
-        private class AsterixElement : PatternElement
+        private sealed class AsterixElement : PatternElement
         {
             public override void ProcessStringCharacter(
                             char currentStringCharacter,
@@ -1196,7 +1194,7 @@ namespace System.Management.Automation
             }
         }
 
-        private class MyWildcardPatternParser : WildcardPatternParser
+        private sealed class MyWildcardPatternParser : WildcardPatternParser
         {
             private readonly List<PatternElement> _patternElements = new List<PatternElement>();
             private CharacterNormalizer _characterNormalizer;
@@ -1263,17 +1261,17 @@ namespace System.Management.Automation
             }
         }
 
-        private struct CharacterNormalizer
+        private readonly struct CharacterNormalizer
         {
             private readonly CultureInfo _cultureInfo;
             private readonly bool _caseInsensitive;
 
             public CharacterNormalizer(WildcardOptions options)
             {
-                _caseInsensitive = 0 != (options & WildcardOptions.IgnoreCase);
+                _caseInsensitive = (options & WildcardOptions.IgnoreCase) != 0;
                 if (_caseInsensitive)
                 {
-                    _cultureInfo = 0 != (options & WildcardOptions.CultureInvariant)
+                    _cultureInfo = (options & WildcardOptions.CultureInvariant) != 0
                         ? CultureInfo.InvariantCulture
                         : CultureInfo.CurrentCulture;
                 }
@@ -1347,4 +1345,3 @@ namespace System.Management.Automation
         }
     }
 }
-

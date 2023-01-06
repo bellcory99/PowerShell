@@ -1,10 +1,11 @@
-# Copyright (c) Microsoft Corporation. All rights reserved.
+# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
 Describe 'ForEach-Object -Parallel Basic Tests' -Tags 'CI' {
 
     BeforeAll {
         $sb = { "Hello!" }
+        $psosb = [psobject]{ "Hello!" }
     }
 
     It "Verifies dollar underbar variable" {
@@ -24,6 +25,246 @@ Describe 'ForEach-Object -Parallel Basic Tests' -Tags 'CI' {
         $result.Count | Should -BeExactly 2
         $result[0] | Should -BeExactly $var
         $result[1] | Should -BeExactly $varArray[1]
+    }
+
+    It 'Verifies in scope using variables in nested calls' {
+
+        $Test = "Test1"
+        $results = 1..2 | ForEach-Object -Parallel {
+            $using:Test
+            $Test = "Test2"
+            1..2 | ForEach-Object -Parallel {
+                $using:Test
+                $Test = "Test3"
+                1..2 | ForEach-Object -Parallel {
+                    $using:Test
+                }
+            }
+        }
+        $results.Count | Should -BeExactly 14
+        $groups = $results | Group-Object -AsHashTable
+        $groups['Test1'].Count | Should -BeExactly 2
+        $groups['Test2'].Count | Should -BeExactly 4
+        $groups['Test3'].Count | Should -BeExactly 8
+    }
+
+    It 'Verifies in scope using variables with different names in nested calls' {
+        $Test1 = "TestA"
+        $results = 1..2 | ForEach-Object -parallel {
+            $using:Test1
+            $Test2 = "TestB"
+            1..2 | ForEach-Object -parallel {
+                $using:Test2
+            }
+        }
+        $results.Count | Should -BeExactly 6
+        $groups = $results | Group-Object -AsHashTable
+        $groups['TestA'].Count | Should -BeExactly 2
+        $groups['TestB'].Count | Should -BeExactly 4
+    }
+
+    It 'Verifies using variable in nested scriptblock' {
+
+        $test = 'testC'
+        $results = 1..2 | ForEach-Object -parallel {
+            & { $using:test }
+        }
+        $results.Count | Should -BeExactly 2
+        $groups = $results | Group-Object -AsHashTable
+        $groups['TestC'].Count | Should -BeExactly 2
+    }
+
+    It 'Verifies expected error for out of scope using variable in nested calls' {
+
+        $Test = "TestZ"
+        1..1 | ForEach-Object -Parallel {
+            $using:Test
+            # Variable '$Test' is not defined in this scope.
+            1..1 | ForEach-Object -Parallel {
+                $using:Test
+            }
+        } -ErrorVariable usingErrors 2>$null
+
+        $usingErrors[0].FullyQualifiedErrorId | Should -BeExactly 'UsingVariableIsUndefined,Microsoft.PowerShell.Commands.ForEachObjectCommand'
+    }
+
+    It 'Verifies using variables with passed-in script block object' {
+
+        $var = "Hello"
+        $varArray = "Hello","There"
+        $sBlock = [scriptblock]::Create('$using:var; $using:varArray[1]')
+        $result = 1..1 | ForEach-Object -Parallel $sBlock
+        $result[0] | Should -BeExactly $var
+        $result[1] | Should -BeExactly $varArray[1]
+    }
+
+    It 'Verifies using variables with passed-in {} script block object' {
+
+        $var = "Hello"
+        $varArray = "Hello","There"
+        $sBlock = { $using:var; $using:varArray[1] }
+        $result = 1..1 | ForEach-Object -Parallel $sBlock
+        $result[0] | Should -BeExactly $var
+        $result[1] | Should -BeExactly $varArray[1]
+    }
+
+    It 'Verifies in scope using same-name variables in nested calls for passed-in script block objects' {
+
+        $Test1 = "Test1"
+        $sBlock = [scriptblock]::Create(@'
+            $using:Test1
+            $Test2 = "Test2"
+            $sBlock2 = [scriptblock]::Create('$using:Test2')
+            1..2 | ForEach-Object -Parallel $sBlock2
+'@)
+        $results = 1..2 | ForEach-Object -Parallel $sBlock
+        $results.Count | Should -BeExactly 6
+        $groups = $results | Group-Object -AsHashTable
+        $groups['Test1'].Count | Should -BeExactly 2
+        $groups['Test2'].Count | Should -BeExactly 4
+    }
+
+    It 'Verifies in scope using same-name variables in nested calls for passed-in {} script block objects' {
+
+        $Test1 = "Test1"
+        $sBlock = {
+            $using:Test1
+            $Test2 = "Test2"
+            $sBlock2 = [scriptblock]::Create('$using:Test2')
+            1..2 | ForEach-Object -Parallel $sBlock2
+        }
+        $results = 1..2 | ForEach-Object -Parallel $sBlock
+        $results.Count | Should -BeExactly 6
+        $groups = $results | Group-Object -AsHashTable
+        $groups['Test1'].Count | Should -BeExactly 2
+        $groups['Test2'].Count | Should -BeExactly 4
+    }
+
+    It 'Verifies in scope using same-name variables in nested calls for mixed script block objects' {
+
+        $Test1 = "Test1"
+        $sBlock = [scriptblock]::Create(@'
+            $using:Test1
+            $Test2 = "Test2"
+            1..2 | ForEach-Object -Parallel { $using:Test2 }
+'@)
+        $results = 1..2 | ForEach-Object -Parallel $sBlock
+        $results.Count | Should -BeExactly 6
+        $groups = $results | Group-Object -AsHashTable
+        $groups['Test1'].Count | Should -BeExactly 2
+        $groups['Test2'].Count | Should -BeExactly 4
+    }
+
+    It 'Verifies in scope using same-name variables in nested calls for mixed script block {} objects' {
+
+        $Test1 = "Test1"
+        $sBlock = {
+            $using:Test1
+            $Test2 = "Test2"
+            1..2 | ForEach-Object -Parallel { $using:Test2 }
+        }
+        $results = 1..2 | ForEach-Object -Parallel $sBlock
+        $results.Count | Should -BeExactly 6
+        $groups = $results | Group-Object -AsHashTable
+        $groups['Test1'].Count | Should -BeExactly 2
+        $groups['Test2'].Count | Should -BeExactly 4
+    }
+
+    It 'Verifies in scope using different-name variables in nested calls for passed-in script block objects' {
+
+        $Test1 = "Test1"
+        $sBlock = [scriptblock]::Create(@'
+            $using:Test1
+            $Test2 = "Test2"
+            $sBlock2 = [scriptblock]::Create('$using:Test2')
+            1..2 | ForEach-Object -Parallel $sBlock2
+'@)
+        $results = 1..2 | ForEach-Object -Parallel $sBlock
+        $results.Count | Should -BeExactly 6
+        $groups = $results | Group-Object -AsHashTable
+        $groups['Test1'].Count | Should -BeExactly 2
+        $groups['Test2'].Count | Should -BeExactly 4
+    }
+
+    It 'Verifies in scope using different-name variables in nested calls for passed-in script {} block objects' {
+
+        $Test1 = "Test1"
+        $sBlock = {
+            $using:Test1
+            $Test2 = "Test2"
+            $sBlock2 = [scriptblock]::Create('$using:Test2')
+            1..2 | ForEach-Object -Parallel $sBlock2
+        }
+        $results = 1..2 | ForEach-Object -Parallel $sBlock
+        $results.Count | Should -BeExactly 6
+        $groups = $results | Group-Object -AsHashTable
+        $groups['Test1'].Count | Should -BeExactly 2
+        $groups['Test2'].Count | Should -BeExactly 4
+    }
+
+    It 'Verifies in scope using different-name variables in nested calls for mixed script block objects' {
+
+        $Test1 = "Test1"
+        $sBlock = [scriptblock]::Create(@'
+            $using:Test1
+            $Test2 = "Test2"
+            1..2 | ForEach-Object -Parallel { $using:Test2 }
+'@)
+        $results = 1..2 | ForEach-Object -Parallel $sBlock
+        $results.Count | Should -BeExactly 6
+        $groups = $results | Group-Object -AsHashTable
+        $groups['Test1'].Count | Should -BeExactly 2
+        $groups['Test2'].Count | Should -BeExactly 4
+    }
+
+    It 'Verifies in scope using different-name variables in nested calls for mixed script block {} objects' {
+
+        $Test1 = "Test1"
+        $sBlock = {
+            $using:Test1
+            $Test2 = "Test2"
+            1..2 | ForEach-Object -Parallel { $using:Test2 }
+        }
+        $results = 1..2 | ForEach-Object -Parallel $sBlock
+        $results.Count | Should -BeExactly 6
+        $groups = $results | Group-Object -AsHashTable
+        $groups['Test1'].Count | Should -BeExactly 2
+        $groups['Test2'].Count | Should -BeExactly 4
+    }
+
+    It 'Verifies expected error for out of scope using variable in nested calls for passed-in script block objects' {
+
+        $Test = "TestZ"
+        $sBlock = [scriptblock]::Create(@'
+            $using:Test
+            $sBlock2 = [scriptblock]::Create('$using:Test')
+            1..1 | ForEach-Object -Parallel $sBlock2
+'@)
+        1..1 | ForEach-Object -Parallel $SBlock -ErrorVariable usingErrors 2>$null
+        $usingErrors[0].FullyQualifiedErrorId | Should -BeExactly 'UsingVariableIsUndefined,Microsoft.PowerShell.Commands.ForEachObjectCommand'
+    }
+
+    It 'Verifies expected error for out of scope using variable in nested calls for passed-in {} script block objects' {
+
+        $Test = "TestZ"
+        $sBlock = [scriptblock]::Create(@'
+            $using:Test
+            $sBlock2 = { $using:Test }
+            1..1 | ForEach-Object -Parallel $sBlock2
+'@)
+        1..1 | ForEach-Object -Parallel $SBlock -ErrorVariable usingErrors 2>$null
+        $usingErrors[0].FullyQualifiedErrorId | Should -BeExactly 'UsingVariableIsUndefined,Microsoft.PowerShell.Commands.ForEachObjectCommand'
+    }
+
+    It 'Verifies expected error for out of scope using variable in nested calls for mixed script block objects' {
+
+        $Test = "TestZ"
+        $sBlock = [scriptblock]::Create(@'
+            $using:Test
+            1..1 | ForEach-Object -Parallel { $using:Test }
+'@)
+        1..1 | ForEach-Object -Parallel $SBlock -ErrorVariable usingErrors 2>$null
+        $usingErrors[0].FullyQualifiedErrorId | Should -BeExactly 'UsingVariableIsUndefined,Microsoft.PowerShell.Commands.ForEachObjectCommand'
     }
 
     It 'Verifies terminating error streaming' {
@@ -77,6 +318,19 @@ Describe 'ForEach-Object -Parallel Basic Tests' -Tags 'CI' {
         $actualDebug.Message | Should -BeExactly 'Debug!'
     }
 
+    It 'Verifies progress data streaming' {
+
+        $ps = [Powershell]::Create([System.Management.Automation.RunspaceMode]::NewRunspace)
+
+        $ps.Commands.AddScript("`$ProgressPreference='Continue'; 1..2 | ForEach-Object -Parallel { Write-Progress -Activity Progress -Status Running }") | Out-Null
+        $ps.Invoke()
+        $pr = $ps.Streams.Progress.ReadAll()
+        $pr.Count | Should -Be 2
+        $pr[0].Activity | Should -Be Progress
+        $pr[0].StatusDescription | Should -Be Running
+        $ps.Dispose()
+    }
+
     It 'Verifies information data streaming' {
 
         $actualInformation = 1..1 | ForEach-Object -Parallel { Write-Information "Information!" } 6>&1
@@ -86,6 +340,11 @@ Describe 'ForEach-Object -Parallel Basic Tests' -Tags 'CI' {
     It 'Verifies error for using script block variable' {
 
         { 1..1 | ForEach-Object -Parallel { $using:sb } } | Should -Throw -ErrorId 'ParallelUsingVariableCannotBeScriptBlock,Microsoft.PowerShell.Commands.ForEachObjectCommand'
+    }
+
+    It 'Verifies error for using script block variable in PSObject' {
+
+        { 1..1 | ForEach-Object -Parallel { $using:psosb } } | Should -Throw -ErrorId 'ParallelUsingVariableCannotBeScriptBlock,Microsoft.PowerShell.Commands.ForEachObjectCommand'
     }
 
     It 'Verifies error for script block piped variable' {
@@ -101,8 +360,43 @@ Describe 'ForEach-Object -Parallel Basic Tests' -Tags 'CI' {
     }
 
     It 'Verifies that the current working directory is preserved' {
-        $parallelScriptLocation = 1..1 | ForEach-Object -Parallel { $pwd }
-        $parallelScriptLocation.Path | Should -BeExactly $pwd.Path
+        $parallelScriptLocation = 1..1 | ForEach-Object -Parallel { $PWD }
+        $parallelScriptLocation.Path | Should -BeExactly $PWD.Path
+    }
+
+    It 'Verifies that the current working directory can have wildcards in its name' {
+        $oldLocation = Get-Location
+
+        $wildcardName = New-Item -Path 'TestDrive:\' -Name '[' -ItemType Directory
+        Set-Location -LiteralPath $wildcardName.FullName
+        try
+        {
+            { 1..1 | ForEach-Object -Parallel { $PWD } } | Should -Not -Throw
+
+            $wildcardPathResult = 1..1 | ForEach-Object -Parallel { $PWD }
+            $wildcardPathResult.Path | Should -BeExactly $PWD.Path
+        }
+        finally
+        {
+            Set-Location -Path $oldLocation
+            if ($drive -is [System.IO.DirectoryInfo]) {
+                $drive | Remove-Item -Force
+            }
+        }
+    }
+
+    It 'Verifies no terminating error if current working drive is not found' {
+        $oldLocation = Get-Location
+        try
+        {
+            New-PSDrive -Name ZZ -PSProvider FileSystem -Root $TestDrive
+            Set-Location -Path 'ZZ:'
+            { 1..1 | ForEach-Object -Parallel { $_ } } | Should -Not -Throw
+        }
+        finally
+        {
+            Set-Location -Path $oldLocation
+        }
     }
 }
 
@@ -209,7 +503,7 @@ Describe 'ForEach-Object -Parallel -AsJob Basic Tests' -Tags 'CI' {
         $Var2 = "Goodbye"
         $Var3 = 105
         $Var4 = "One","Two","Three"
-        $job = 1..1 | Foreach-Object -AsJob -Parallel {
+        $job = 1..1 | ForEach-Object -AsJob -Parallel {
             Write-Output $using:Var1
             Write-Output $using:Var2
             Write-Output $using:Var3
@@ -307,10 +601,27 @@ Describe 'ForEach-Object -Parallel -AsJob Basic Tests' -Tags 'CI' {
     }
 
     It 'Verifies that the current working directory is preserved' {
-        $job = 1..1 | ForEach-Object -AsJob -Parallel { $pwd }
+        $job = 1..1 | ForEach-Object -AsJob -Parallel { $PWD }
         $parallelScriptLocation = $job | Wait-Job | Receive-Job
         $job | Remove-Job
-        $parallelScriptLocation.Path | Should -BeExactly $pwd.Path
+        $parallelScriptLocation.Path | Should -BeExactly $PWD.Path
+    }
+}
+
+Describe 'ForEach-Object -Parallel runspace pool tests' -Tags 'CI' {
+
+    It "Verifies job allocated runspace count is limited to pool size" {
+
+        $job = 1..4 | ForEach-Object -Parallel { Start-Sleep 1 } -AsJob -ThrottleLimit 2 | Wait-Job
+        $job.AllocatedRunspaceCount | Should -BeExactly 2
+        $job | Remove-Job
+    }
+
+    It "Verifies job with -UseNewRunspace switch allocates one runspace per iteration" {
+
+        $job = 1..10 | ForEach-Object -Parallel { $_ } -AsJob -ThrottleLimit 2 -UseNewRunspace | Wait-Job
+        $job.AllocatedRunspaceCount | Should -BeExactly 10
+        $job | Remove-Job
     }
 }
 
@@ -362,6 +673,6 @@ Describe 'ForEach-Object -Parallel Functional Tests' -Tags 'Feature' {
         $results.Count | Should -BeExactly 2
         $results[0] | Should -BeExactly 'Output 1'
         $results[1].FullyQualifiedErrorId | Should -BeExactly 'PSTaskException'
-        $results[1].Exception | Should -BeOfType [System.Management.Automation.PipelineStoppedException]
+        $results[1].Exception | Should -BeOfType System.Management.Automation.PipelineStoppedException
     }
 }

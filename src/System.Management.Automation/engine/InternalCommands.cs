@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System;
@@ -6,7 +6,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Globalization;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Management.Automation;
 using System.Management.Automation.Internal;
@@ -15,8 +14,10 @@ using System.Management.Automation.PSTasks;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
+
 using CommonParamSet = System.Management.Automation.Internal.CommonParameters;
 using Dbg = System.Management.Automation.Diagnostics;
+using NotNullWhen = System.Diagnostics.CodeAnalysis.NotNullWhenAttribute;
 
 namespace Microsoft.PowerShell.Commands
 {
@@ -80,9 +81,9 @@ namespace Microsoft.PowerShell.Commands
         [Parameter(ValueFromPipeline = true, ParameterSetName = ForEachObjectCommand.ParallelParameterSet)]
         public PSObject InputObject
         {
-            set { _inputObject = value; }
-
             get { return _inputObject; }
+
+            set { _inputObject = value; }
         }
 
         private PSObject _inputObject = AutomationNull.Value;
@@ -91,7 +92,7 @@ namespace Microsoft.PowerShell.Commands
 
         #region ScriptBlockSet
 
-        private List<ScriptBlock> _scripts = new List<ScriptBlock>();
+        private readonly List<ScriptBlock> _scripts = new List<ScriptBlock>();
 
         /// <summary>
         /// Gets or sets the script block to apply in begin processing.
@@ -220,9 +221,9 @@ namespace Microsoft.PowerShell.Commands
         [Alias("Args")]
         public object[] ArgumentList
         {
-            set { _arguments = value; }
-
             get { return _arguments; }
+
+            set { _arguments = value; }
         }
 
         private object[] _arguments;
@@ -259,6 +260,14 @@ namespace Microsoft.PowerShell.Commands
         /// </summary>
         [Parameter(ParameterSetName = ForEachObjectCommand.ParallelParameterSet)]
         public SwitchParameter AsJob { get; set; }
+
+        /// <summary>
+        /// Gets or sets a flag so that a new runspace object is created for each loop iteration, instead of reusing objects
+        /// from the runspace pool.
+        /// By default, runspaces are reused from a runspace pool.
+        /// </summary>
+        [Parameter(ParameterSetName = ForEachObjectCommand.ParallelParameterSet)]
+        public SwitchParameter UseNewRunspace { get; set; }
 
         #endregion
 
@@ -399,19 +408,18 @@ namespace Microsoft.PowerShell.Commands
             {
             }
 
-            bool allowUsingExpression = this.Context.SessionState.LanguageMode != PSLanguageMode.NoLanguage;
-            _usingValuesMap = ScriptBlockToPowerShellConverter.GetUsingValuesAsDictionary(
-                                Parallel,
-                                allowUsingExpression,
-                                this.Context,
-                                null);
+            var allowUsingExpression = this.Context.SessionState.LanguageMode != PSLanguageMode.NoLanguage;
+            _usingValuesMap = ScriptBlockToPowerShellConverter.GetUsingValuesForEachParallel(
+                scriptBlock: Parallel,
+                isTrustedInput: allowUsingExpression,
+                context: this.Context);
 
             // Validate using values map, which is a map of '$using:' variables referenced in the script.
             // Script block variables are not allowed since their behavior is undefined outside the runspace
             // in which they were created.
             foreach (object item in _usingValuesMap.Values)
             {
-                if (item is ScriptBlock)
+                if (item is ScriptBlock or PSObject { BaseObject: ScriptBlock })
                 {
                     ThrowTerminatingError(
                         new ErrorRecord(
@@ -437,7 +445,8 @@ namespace Microsoft.PowerShell.Commands
 
                 _taskJob = new PSTaskJob(
                     Parallel.ToString(),
-                    ThrottleLimit);
+                    ThrottleLimit,
+                    UseNewRunspace);
 
                 return;
             }
@@ -445,11 +454,8 @@ namespace Microsoft.PowerShell.Commands
             // Set up for synchronous processing and data streaming.
             _taskCollection = new PSDataCollection<System.Management.Automation.PSTasks.PSTask>();
             _taskDataStreamWriter = new PSTaskDataStreamWriter(this);
-            _taskPool = new PSTaskPool(ThrottleLimit);
-            _taskPool.PoolComplete += (sender, args) =>
-            {
-                _taskDataStreamWriter.Close();
-            };
+            _taskPool = new PSTaskPool(ThrottleLimit, UseNewRunspace);
+            _taskPool.PoolComplete += (sender, args) => _taskDataStreamWriter.Close();
 
             // Create timeout timer if requested.
             if (TimeoutSeconds != 0)
@@ -913,17 +919,14 @@ namespace Microsoft.PowerShell.Commands
                 // because it allows you to parameterize a command - for example you might allow
                 // for actions before and after the main processing script. They could be null
                 // by default and therefore ignored then filled in later...
-                if (_scripts[i] != null)
-                {
-                    _scripts[i].InvokeUsingCmdlet(
-                        contextCmdlet: this,
-                        useLocalScope: false,
-                        errorHandlingBehavior: ScriptBlock.ErrorHandlingBehavior.WriteToCurrentErrorPipe,
-                        dollarUnder: InputObject,
-                        input: new object[] { InputObject },
-                        scriptThis: AutomationNull.Value,
-                        args: Array.Empty<object>());
-                }
+                _scripts[i]?.InvokeUsingCmdlet(
+                    contextCmdlet: this,
+                    useLocalScope: false,
+                    errorHandlingBehavior: ScriptBlock.ErrorHandlingBehavior.WriteToCurrentErrorPipe,
+                    dollarUnder: InputObject,
+                    input: new object[] { InputObject },
+                    scriptThis: AutomationNull.Value,
+                    args: Array.Empty<object>());
             }
         }
 
@@ -1026,7 +1029,7 @@ namespace Microsoft.PowerShell.Commands
                     _propertyOrMethodName,
                     possibleMatches));
             }
-            else if (methods.Count == 0 || !(methods[0] is PSMethodInfo))
+            else if (methods.Count == 0 || methods[0] is not PSMethodInfo)
             {
                 // write error record: method no found
                 WriteError(GenerateNameParameterError(
@@ -1226,7 +1229,7 @@ namespace Microsoft.PowerShell.Commands
         internal static ErrorRecord GenerateNameParameterError(string paraName, string resourceString, string errorId, object target, params object[] args)
         {
             string message;
-            if (args == null || 0 == args.Length)
+            if (args == null || args.Length == 0)
             {
                 // Don't format in case the string contains literal curly braces
                 message = resourceString;
@@ -1533,7 +1536,7 @@ namespace Microsoft.PowerShell.Commands
         }
 
         /// <summary>
-        /// Gets -sets case sensitive binary operator -clt.
+        /// Gets or sets case sensitive binary operator -clt.
         /// </summary>
         [Parameter(Mandatory = true, ParameterSetName = "CaseSensitiveLessThanSet")]
         public SwitchParameter CLT
@@ -1954,6 +1957,7 @@ namespace Microsoft.PowerShell.Commands
 
         private readonly CallSite<Func<CallSite, object, bool>> _toBoolSite =
             CallSite<Func<CallSite, object, bool>>.Create(PSConvertBinder.Get(typeof(bool)));
+
         private Func<object, object, object> _operationDelegate;
 
         private static Func<object, object, object> GetCallSiteDelegate(ExpressionType expressionType, bool ignoreCase)
@@ -1998,8 +2002,7 @@ namespace Microsoft.PowerShell.Commands
 
         private object GetLikeRHSOperand(object operand)
         {
-            var val = operand as string;
-            if (val == null)
+            if (!(operand is string val))
             {
                 return operand;
             }
@@ -2630,46 +2633,19 @@ namespace Microsoft.PowerShell.Commands
         private SwitchParameter _off;
 
         /// <summary>
-        /// To make it easier to specify a version, we add some conversions that wouldn't happen otherwise:
-        ///   * A simple integer, i.e. 2
-        ///   * A string without a dot, i.e. "2"
-        ///   * The string 'latest', which we interpret to be the current version of PowerShell.
+        /// Handle 'latest', which we interpret to be the current version of PowerShell.
         /// </summary>
-        private sealed class ArgumentToVersionTransformationAttribute : ArgumentTransformationAttribute
+        private sealed class ArgumentToPSVersionTransformationAttribute : ArgumentToVersionTransformationAttribute
         {
-            public override object Transform(EngineIntrinsics engineIntrinsics, object inputData)
+            protected override bool TryConvertFromString(string versionString, [NotNullWhen(true)] out Version version)
             {
-                object version = PSObject.Base(inputData);
-
-                string versionStr = version as string;
-                if (versionStr != null)
+                if (string.Equals("latest", versionString, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (versionStr.Equals("latest", StringComparison.OrdinalIgnoreCase))
-                    {
-                        return PSVersionInfo.PSVersion;
-                    }
-
-                    if (versionStr.Contains("."))
-                    {
-                        // If the string contains a '.', let the Version constructor handle the conversion.
-                        return inputData;
-                    }
+                    version = PSVersionInfo.PSVersion;
+                    return true;
                 }
 
-                if (version is double)
-                {
-                    // The conversion to int below is wrong, but the usual conversions will turn
-                    // the double into a string, so just return the original object.
-                    return inputData;
-                }
-
-                int majorVersion;
-                if (LanguagePrimitives.TryConvertTo<int>(version, out majorVersion))
-                {
-                    return new Version(majorVersion, 0);
-                }
-
-                return inputData;
+                return base.TryConvertFromString(versionString, out version);
             }
         }
 
@@ -2678,7 +2654,7 @@ namespace Microsoft.PowerShell.Commands
             protected override void Validate(object arguments, EngineIntrinsics engineIntrinsics)
             {
                 Version version = arguments as Version;
-                if (version == null || !PSVersionInfo.IsValidPSVersion(version))
+                if (!PSVersionInfo.IsValidPSVersion(version))
                 {
                     // No conversion succeeded so throw and exception...
                     throw new ValidationMetadataException(
@@ -2694,7 +2670,7 @@ namespace Microsoft.PowerShell.Commands
         /// Gets or sets strict mode in the current scope.
         /// </summary>
         [Parameter(ParameterSetName = "Version", Mandatory = true)]
-        [ArgumentToVersionTransformation]
+        [ArgumentToPSVersionTransformation]
         [ValidateVersion]
         [Alias("v")]
         public Version Version

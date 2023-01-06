@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System;
@@ -43,7 +43,7 @@ namespace Microsoft.PowerShell.Commands
 
         // Debugging to persist until Ctrl+C or Debugger 'Exit' stops cmdlet.
         private bool _debugging;
-        private ManualResetEventSlim _newRunningScriptEvent = new ManualResetEventSlim(true);
+        private readonly ManualResetEventSlim _newRunningScriptEvent = new(true);
         private RunspaceAvailability _previousRunspaceAvailability = RunspaceAvailability.None;
 
         #endregion
@@ -103,7 +103,6 @@ namespace Microsoft.PowerShell.Commands
         /// <summary>
         /// Gets or sets a flag that tells PowerShell to automatically perform a BreakAll when the debugger is attached to the remote target.
         /// </summary>
-        [Experimental("Microsoft.PowerShell.Utility.PSManageBreakpointsInRunspace", ExperimentAction.Show)]
         [Parameter]
         public SwitchParameter BreakAll { get; set; }
 
@@ -237,10 +236,7 @@ namespace Microsoft.PowerShell.Commands
 
             // Unblock the data collection.
             PSDataCollection<PSStreamObject> debugCollection = _debugBlockingCollection;
-            if (debugCollection != null)
-            {
-                debugCollection.Complete();
-            }
+            debugCollection?.Complete();
 
             // Unblock any new command wait.
             _newRunningScriptEvent.Set();
@@ -335,9 +331,8 @@ namespace Microsoft.PowerShell.Commands
         private void AddDataEventHandlers()
         {
             // Create new collection objects.
-            if (_debugBlockingCollection != null) { _debugBlockingCollection.Dispose(); }
-
-            if (_debugAccumulateCollection != null) { _debugAccumulateCollection.Dispose(); }
+            _debugBlockingCollection?.Dispose();
+            _debugAccumulateCollection?.Dispose();
 
             _debugBlockingCollection = new PSDataCollection<PSStreamObject>();
             _debugBlockingCollection.BlockingEnumerator = true;
@@ -549,7 +544,7 @@ namespace Microsoft.PowerShell.Commands
             }
         }
 
-        private void SetLocalMode(System.Management.Automation.Debugger debugger, bool localMode)
+        private static void SetLocalMode(System.Management.Automation.Debugger debugger, bool localMode)
         {
             ServerRemoteDebugger remoteDebugger = debugger as ServerRemoteDebugger;
             if (remoteDebugger != null)

@@ -1,4 +1,4 @@
-# Copyright (c) Microsoft Corporation. All rights reserved.
+# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
 ##
@@ -470,7 +470,7 @@ try
 
         BeforeAll {
 
-            function VulnerableFunctionFromFullLanguage { Invoke-Expression $Args[0] }
+            function VulnerableFunctionFromFullLanguage { Invoke-Expression $args[0] }
 
             $TestCasesIEX = @(
                 @{testName = "Verifies direct Invoke-Expression does not bypass constrained language mode";
@@ -554,22 +554,20 @@ try
         }
     }
 
-    Describe "Tab expansion in constrained language mode" -Tags 'Feature','RequireAdminOnWindows' {
+    Describe "Conversion in constrained language mode" -Tags 'Feature','RequireAdminOnWindows' {
 
-        It "Verifies that tab expansion cannot convert disallowed IntPtr type" {
+        It "Verifies that PowerShell cannot convert disallowed IntPtr type" {
 
             try
             {
                 $ExecutionContext.SessionState.LanguageMode = "ConstrainedLanguage"
-
-                $result = @(TabExpansion2 '(1234 -as [IntPtr]).' 20 | ForEach-Object CompletionMatches | Where-Object CompletionText -Match Pointer)
+                $result = 1234 -as [IntPtr]
+                $null -eq $result | Should -BeTrue
             }
             finally
             {
                 Invoke-LanguageModeTestingSupportCmdlet -EnableFullLanguageMode
             }
-
-            $result.Count | Should -Be 0
         }
     }
 

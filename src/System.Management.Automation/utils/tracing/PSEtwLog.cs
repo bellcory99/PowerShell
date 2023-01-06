@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System.Collections.Generic;
@@ -13,9 +13,9 @@ namespace System.Management.Automation.Tracing
     internal static class PSEtwLog
     {
 #if UNIX
-        private static PSSysLogProvider provider;
+        private static readonly PSSysLogProvider provider;
 #else
-        private static PSEtwLogProvider provider;
+        private static readonly PSEtwLogProvider provider;
 #endif
 
         /// <summary>
@@ -116,6 +116,16 @@ namespace System.Management.Automation.Tracing
         internal static void LogProviderLifecycleEvent(LogContext logContext, string providerName, ProviderState newState)
         {
             provider.LogProviderLifecycleEvent(logContext, providerName, newState);
+        }
+
+        /// <summary>
+        /// Provider interface function for logging AmsiUtil State event.
+        /// </summary>
+        /// <param name="state">This the action performed in AmsiUtil class, like init, scan, etc.</param>
+        /// <param name="context">The amsiContext handled - Session pair.</param>
+        internal static void LogAmsiUtilStateEvent(string state, string context)
+        {
+            provider.LogAmsiUtilStateEvent(state, context);
         }
 
         /// <summary>

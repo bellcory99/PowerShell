@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System;
@@ -115,7 +115,7 @@ namespace Microsoft.PowerShell.ScheduledJob
         }
 
         /// <summary>
-        /// Checks the provided path against the the default path of scheduled jobs
+        /// Checks the provided path against the default path of scheduled jobs
         /// for the current user.
         /// </summary>
         /// <param name="definitionPath">Path for scheduled job definitions.</param>

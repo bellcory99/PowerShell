@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System.Collections;
@@ -22,6 +22,8 @@ using Dbg = System.Management.Automation.Diagnostics;
 
 namespace System.Management.Automation.Remoting
 {
+    #region WSMan endpoint configuration
+
     /// <summary>
     /// This struct is used to represent contents from configuration xml. The
     /// XML is passed to plugins by WSMan API.
@@ -56,6 +58,8 @@ namespace System.Management.Automation.Remoting
 
         #endregion
 
+        #region Fields
+
         internal string StartupScript;
         // this field is used only by an Out-Of-Process (IPC) server process
         internal string InitializationScriptForOutOfProcessRunspace;
@@ -70,6 +74,10 @@ namespace System.Management.Automation.Remoting
         internal ApartmentState? ShellThreadApartmentState;
         internal PSSessionConfigurationData SessionConfigurationData;
         internal string ConfigFilePath;
+
+        #endregion
+
+        #region Methods
 
         /// <summary>
         /// Using optionName and optionValue updates the current object.
@@ -138,7 +146,7 @@ namespace System.Management.Automation.Remoting
                 case CONFIGFILEPATH:
                     {
                         AssertValueNotAssigned(CONFIGFILEPATH, ConfigFilePath);
-                        ConfigFilePath = optionValue.ToString();
+                        ConfigFilePath = optionValue;
                     }
 
                     break;
@@ -157,7 +165,7 @@ namespace System.Management.Automation.Remoting
         /// <exception cref="ArgumentException">
         /// 1. "optionName" is already defined
         /// </exception>
-        private void AssertValueNotAssigned(string optionName, object originalValue)
+        private static void AssertValueNotAssigned(string optionName, object originalValue)
         {
             if (originalValue != null)
             {
@@ -243,9 +251,6 @@ namespace System.Management.Automation.Remoting
             readerSettings.IgnoreProcessingInstructions = true;
             readerSettings.MaxCharactersInDocument = 10000;
             readerSettings.ConformanceLevel = ConformanceLevel.Fragment;
-#if !CORECLR // No XmlReaderSettings.XmlResolver in CoreCLR
-            readerSettings.XmlResolver = null;
-#endif
 
             using (XmlReader reader = XmlReader.Create(new StringReader(initializationParameters), readerSettings))
             {
@@ -281,15 +286,9 @@ namespace System.Management.Automation.Remoting
             }
 
             // assign defaults after parsing the xml content.
-            if (result.MaxReceivedObjectSizeMB == null)
-            {
-                result.MaxReceivedObjectSizeMB = BaseTransportManager.MaximumReceivedObjectSize;
-            }
+            result.MaxReceivedObjectSizeMB ??= BaseTransportManager.MaximumReceivedObjectSize;
 
-            if (result.MaxReceivedCommandSizeMB == null)
-            {
-                result.MaxReceivedCommandSizeMB = BaseTransportManager.MaximumReceivedDataSize;
-            }
+            result.MaxReceivedCommandSizeMB ??= BaseTransportManager.MaximumReceivedDataSize;
 
             return result;
         }
@@ -327,6 +326,8 @@ namespace System.Management.Automation.Remoting
             throw PSTraceSource.NewArgumentException("typeToLoad", RemotingErrorIdStrings.UnableToLoadType,
                     EndPointConfigurationTypeName, ConfigurationDataFromXML.INITPARAMETERSTOKEN);
         }
+
+        #endregion
     }
 
     /// <summary>
@@ -404,7 +405,7 @@ namespace System.Management.Automation.Remoting
         /// <param name="senderInfo">
         /// User Identity for which this information is requested
         /// </param>
-        /// <returns>Application private data or <c>null</c></returns>
+        /// <returns>Application private data or <see langword="null"/></returns>
         public virtual PSPrimitiveDictionary GetApplicationPrivateData(PSSenderInfo senderInfo)
         {
             return null;
@@ -453,7 +454,8 @@ namespace System.Management.Automation.Remoting
                     ...
                   </InitializationParameters>
          */
-        internal static ConfigurationDataFromXML LoadEndPointConfiguration(string shellId,
+        internal static ConfigurationDataFromXML LoadEndPointConfiguration(
+            string shellId,
             string initializationParameters)
         {
             ConfigurationDataFromXML configData = null;
@@ -531,7 +533,7 @@ namespace System.Management.Automation.Remoting
                 assembly = LoadSsnStateProviderAssembly(applicationBase, assemblyName);
                 if (assembly == null)
                 {
-                    throw PSTraceSource.NewArgumentException("assemblyName", RemotingErrorIdStrings.UnableToLoadAssembly,
+                    throw PSTraceSource.NewArgumentException(nameof(assemblyName), RemotingErrorIdStrings.UnableToLoadAssembly,
                         assemblyName, ConfigurationDataFromXML.INITPARAMETERSTOKEN);
                 }
             }
@@ -548,7 +550,7 @@ namespace System.Management.Automation.Remoting
                     Type type = assembly.GetType(typeToLoad, true, true);
                     if (type == null)
                     {
-                        throw PSTraceSource.NewArgumentException("typeToLoad", RemotingErrorIdStrings.UnableToLoadType,
+                        throw PSTraceSource.NewArgumentException(nameof(typeToLoad), RemotingErrorIdStrings.UnableToLoadType,
                             typeToLoad, ConfigurationDataFromXML.INITPARAMETERSTOKEN);
                     }
 
@@ -575,7 +577,7 @@ namespace System.Management.Automation.Remoting
 
                 // if we are here, that means we are unable to load the type specified
                 // in the config xml.. notify the same.
-                throw PSTraceSource.NewArgumentException("typeToLoad", RemotingErrorIdStrings.UnableToLoadType,
+                throw PSTraceSource.NewArgumentException(nameof(typeToLoad), RemotingErrorIdStrings.UnableToLoadType,
                         typeToLoad, ConfigurationDataFromXML.INITPARAMETERSTOKEN);
             }
 
@@ -766,19 +768,19 @@ namespace System.Management.Automation.Remoting
             Dbg.Assert(registryKey != null, "Caller should validate the registryKey parameter");
 
             object value = registryKey.GetValue(name);
-            if (value == null && mandatory == true)
+            if (value == null && mandatory)
             {
                 s_tracer.TraceError("Mandatory property {0} not specified for registry key {1}",
                         name, registryKey.Name);
-                throw PSTraceSource.NewArgumentException("name", RemotingErrorIdStrings.MandatoryValueNotPresent, name, registryKey.Name);
+                throw PSTraceSource.NewArgumentException(nameof(name), RemotingErrorIdStrings.MandatoryValueNotPresent, name, registryKey.Name);
             }
 
             string s = value as string;
-            if (string.IsNullOrEmpty(s) && mandatory == true)
+            if (string.IsNullOrEmpty(s) && mandatory)
             {
                 s_tracer.TraceError("Value is null or empty for mandatory property {0} in {1}",
                         name, registryKey.Name);
-                throw PSTraceSource.NewArgumentException("name", RemotingErrorIdStrings.MandatoryValueNotInCorrectFormat, name, registryKey.Name);
+                throw PSTraceSource.NewArgumentException(nameof(name), RemotingErrorIdStrings.MandatoryValueNotInCorrectFormat, name, registryKey.Name);
             }
 
             return s;
@@ -787,9 +789,11 @@ namespace System.Management.Automation.Remoting
         private const string configProvidersKeyName = "PSConfigurationProviders";
         private const string configProviderApplicationBaseKeyName = "ApplicationBase";
         private const string configProviderAssemblyNameKeyName = "AssemblyName";
-        private static Dictionary<string, ConfigurationDataFromXML> s_ssnStateProviders =
+
+        private static readonly Dictionary<string, ConfigurationDataFromXML> s_ssnStateProviders =
             new Dictionary<string, ConfigurationDataFromXML>(StringComparer.OrdinalIgnoreCase);
-        private static object s_syncObject = new object();
+
+        private static readonly object s_syncObject = new object();
 
         #endregion
     }
@@ -799,6 +803,8 @@ namespace System.Management.Automation.Remoting
     /// </summary>
     internal sealed class DefaultRemotePowerShellConfiguration : PSSessionConfiguration
     {
+        #region Method overrides
+
         /// <summary>
         /// </summary>
         /// <param name="senderInfo"></param>
@@ -814,14 +820,11 @@ namespace System.Management.Automation.Remoting
 
         public override InitialSessionState GetInitialSessionState(PSSessionConfigurationData sessionConfigurationData, PSSenderInfo senderInfo, string configProviderId)
         {
-            if (sessionConfigurationData == null)
-                throw new ArgumentNullException("sessionConfigurationData");
+            ArgumentNullException.ThrowIfNull(sessionConfigurationData);
 
-            if (senderInfo == null)
-                throw new ArgumentNullException("senderInfo");
+            ArgumentNullException.ThrowIfNull(senderInfo);
 
-            if (configProviderId == null)
-                throw new ArgumentNullException("configProviderId");
+            ArgumentNullException.ThrowIfNull(configProviderId);
 
             InitialSessionState sessionState = InitialSessionState.CreateDefault2();
             // now get all the modules in the specified path and import the same
@@ -853,9 +856,15 @@ namespace System.Management.Automation.Remoting
 
             return sessionState;
         }
+
+        #endregion
     }
 
-    #region Declarative Initial Session Configuration
+    #endregion
+
+    #region Declarative InitialSession Configuration
+
+    #region Supporting types
 
     /// <summary>
     /// Specifies type of initial session state to use. Valid values are Empty and Default.
@@ -898,6 +907,10 @@ namespace System.Management.Automation.Remoting
             this.ValidationCallback = callback;
         }
     }
+
+    #endregion
+
+    #region ConfigFileConstants
 
     /// <summary>
     /// Configuration file constants.
@@ -949,42 +962,42 @@ namespace System.Management.Automation.Remoting
         internal static readonly string VisibleProviders = "VisibleProviders";
         internal static readonly string VisibleExternalCommands = "VisibleExternalCommands";
 
-        internal static ConfigTypeEntry[] ConfigFileKeys = new ConfigTypeEntry[] {
-            new ConfigTypeEntry(AliasDefinitions,               new ConfigTypeEntry.TypeValidationCallback(AliasDefinitionsTypeValidationCallback)),
-            new ConfigTypeEntry(AssembliesToLoad,               new ConfigTypeEntry.TypeValidationCallback(StringArrayTypeValidationCallback)),
-            new ConfigTypeEntry(Author,                         new ConfigTypeEntry.TypeValidationCallback(StringTypeValidationCallback)),
-            new ConfigTypeEntry(CompanyName,                    new ConfigTypeEntry.TypeValidationCallback(StringTypeValidationCallback)),
-            new ConfigTypeEntry(Copyright,                      new ConfigTypeEntry.TypeValidationCallback(StringTypeValidationCallback)),
-            new ConfigTypeEntry(Description,                    new ConfigTypeEntry.TypeValidationCallback(StringTypeValidationCallback)),
-            new ConfigTypeEntry(EnforceInputParameterValidation,new ConfigTypeEntry.TypeValidationCallback(BooleanTypeValidationCallback)),
-            new ConfigTypeEntry(EnvironmentVariables,           new ConfigTypeEntry.TypeValidationCallback(HashtableTypeValidationCallback)),
-            new ConfigTypeEntry(ExecutionPolicy,                new ConfigTypeEntry.TypeValidationCallback(ExecutionPolicyValidationCallback)),
-            new ConfigTypeEntry(FormatsToProcess,               new ConfigTypeEntry.TypeValidationCallback(StringArrayTypeValidationCallback)),
-            new ConfigTypeEntry(FunctionDefinitions,            new ConfigTypeEntry.TypeValidationCallback(FunctionDefinitionsTypeValidationCallback)),
-            new ConfigTypeEntry(GMSAAccount,                    new ConfigTypeEntry.TypeValidationCallback(StringTypeValidationCallback)),
-            new ConfigTypeEntry(Guid,                           new ConfigTypeEntry.TypeValidationCallback(StringTypeValidationCallback)),
-            new ConfigTypeEntry(LanguageMode,                   new ConfigTypeEntry.TypeValidationCallback(LanguageModeValidationCallback)),
-            new ConfigTypeEntry(ModulesToImport,                new ConfigTypeEntry.TypeValidationCallback(StringOrHashtableArrayTypeValidationCallback)),
-            new ConfigTypeEntry(MountUserDrive,                 new ConfigTypeEntry.TypeValidationCallback(BooleanTypeValidationCallback)),
-            new ConfigTypeEntry(PowerShellVersion,              new ConfigTypeEntry.TypeValidationCallback(StringTypeValidationCallback)),
-            new ConfigTypeEntry(RequiredGroups,                 new ConfigTypeEntry.TypeValidationCallback(HashtableTypeValidationCallback)),
-            new ConfigTypeEntry(RoleCapabilities,               new ConfigTypeEntry.TypeValidationCallback(StringArrayTypeValidationCallback)),
-            new ConfigTypeEntry(RoleCapabilityFiles,            new ConfigTypeEntry.TypeValidationCallback(StringArrayTypeValidationCallback)),
-            new ConfigTypeEntry(RoleDefinitions,                new ConfigTypeEntry.TypeValidationCallback(HashtableTypeValidationCallback)),
-            new ConfigTypeEntry(RunAsVirtualAccount,            new ConfigTypeEntry.TypeValidationCallback(BooleanTypeValidationCallback)),
-            new ConfigTypeEntry(RunAsVirtualAccountGroups,      new ConfigTypeEntry.TypeValidationCallback(StringArrayTypeValidationCallback)),
-            new ConfigTypeEntry(SchemaVersion,                  new ConfigTypeEntry.TypeValidationCallback(StringTypeValidationCallback)),
-            new ConfigTypeEntry(ScriptsToProcess,               new ConfigTypeEntry.TypeValidationCallback(StringArrayTypeValidationCallback)),
-            new ConfigTypeEntry(SessionType,                    new ConfigTypeEntry.TypeValidationCallback(ISSValidationCallback)),
-            new ConfigTypeEntry(TranscriptDirectory,            new ConfigTypeEntry.TypeValidationCallback(StringTypeValidationCallback)),
-            new ConfigTypeEntry(TypesToProcess,                 new ConfigTypeEntry.TypeValidationCallback(StringArrayTypeValidationCallback)),
-            new ConfigTypeEntry(UserDriveMaxSize,               new ConfigTypeEntry.TypeValidationCallback(IntegerTypeValidationCallback)),
-            new ConfigTypeEntry(VariableDefinitions,            new ConfigTypeEntry.TypeValidationCallback(VariableDefinitionsTypeValidationCallback)),
-            new ConfigTypeEntry(VisibleAliases,                 new ConfigTypeEntry.TypeValidationCallback(StringArrayTypeValidationCallback)),
-            new ConfigTypeEntry(VisibleCmdlets,                 new ConfigTypeEntry.TypeValidationCallback(StringArrayTypeValidationCallback)),
-            new ConfigTypeEntry(VisibleFunctions,               new ConfigTypeEntry.TypeValidationCallback(StringArrayTypeValidationCallback)),
-            new ConfigTypeEntry(VisibleProviders,               new ConfigTypeEntry.TypeValidationCallback(StringArrayTypeValidationCallback)),
-            new ConfigTypeEntry(VisibleExternalCommands,        new ConfigTypeEntry.TypeValidationCallback(StringArrayTypeValidationCallback)),
+        internal static readonly ConfigTypeEntry[] ConfigFileKeys = new ConfigTypeEntry[] {
+            new ConfigTypeEntry(AliasDefinitions,                new ConfigTypeEntry.TypeValidationCallback(AliasDefinitionsTypeValidationCallback)),
+            new ConfigTypeEntry(AssembliesToLoad,                new ConfigTypeEntry.TypeValidationCallback(StringArrayTypeValidationCallback)),
+            new ConfigTypeEntry(Author,                          new ConfigTypeEntry.TypeValidationCallback(StringTypeValidationCallback)),
+            new ConfigTypeEntry(CompanyName,                     new ConfigTypeEntry.TypeValidationCallback(StringTypeValidationCallback)),
+            new ConfigTypeEntry(Copyright,                       new ConfigTypeEntry.TypeValidationCallback(StringTypeValidationCallback)),
+            new ConfigTypeEntry(Description,                     new ConfigTypeEntry.TypeValidationCallback(StringTypeValidationCallback)),
+            new ConfigTypeEntry(EnforceInputParameterValidation, new ConfigTypeEntry.TypeValidationCallback(BooleanTypeValidationCallback)),
+            new ConfigTypeEntry(EnvironmentVariables,            new ConfigTypeEntry.TypeValidationCallback(HashtableTypeValidationCallback)),
+            new ConfigTypeEntry(ExecutionPolicy,                 new ConfigTypeEntry.TypeValidationCallback(ExecutionPolicyValidationCallback)),
+            new ConfigTypeEntry(FormatsToProcess,                new ConfigTypeEntry.TypeValidationCallback(StringArrayTypeValidationCallback)),
+            new ConfigTypeEntry(FunctionDefinitions,             new ConfigTypeEntry.TypeValidationCallback(FunctionDefinitionsTypeValidationCallback)),
+            new ConfigTypeEntry(GMSAAccount,                     new ConfigTypeEntry.TypeValidationCallback(StringTypeValidationCallback)),
+            new ConfigTypeEntry(Guid,                            new ConfigTypeEntry.TypeValidationCallback(StringTypeValidationCallback)),
+            new ConfigTypeEntry(LanguageMode,                    new ConfigTypeEntry.TypeValidationCallback(LanguageModeValidationCallback)),
+            new ConfigTypeEntry(ModulesToImport,                 new ConfigTypeEntry.TypeValidationCallback(StringOrHashtableArrayTypeValidationCallback)),
+            new ConfigTypeEntry(MountUserDrive,                  new ConfigTypeEntry.TypeValidationCallback(BooleanTypeValidationCallback)),
+            new ConfigTypeEntry(PowerShellVersion,               new ConfigTypeEntry.TypeValidationCallback(StringTypeValidationCallback)),
+            new ConfigTypeEntry(RequiredGroups,                  new ConfigTypeEntry.TypeValidationCallback(HashtableTypeValidationCallback)),
+            new ConfigTypeEntry(RoleCapabilities,                new ConfigTypeEntry.TypeValidationCallback(StringArrayTypeValidationCallback)),
+            new ConfigTypeEntry(RoleCapabilityFiles,             new ConfigTypeEntry.TypeValidationCallback(StringArrayTypeValidationCallback)),
+            new ConfigTypeEntry(RoleDefinitions,                 new ConfigTypeEntry.TypeValidationCallback(HashtableTypeValidationCallback)),
+            new ConfigTypeEntry(RunAsVirtualAccount,             new ConfigTypeEntry.TypeValidationCallback(BooleanTypeValidationCallback)),
+            new ConfigTypeEntry(RunAsVirtualAccountGroups,       new ConfigTypeEntry.TypeValidationCallback(StringArrayTypeValidationCallback)),
+            new ConfigTypeEntry(SchemaVersion,                   new ConfigTypeEntry.TypeValidationCallback(StringTypeValidationCallback)),
+            new ConfigTypeEntry(ScriptsToProcess,                new ConfigTypeEntry.TypeValidationCallback(StringArrayTypeValidationCallback)),
+            new ConfigTypeEntry(SessionType,                     new ConfigTypeEntry.TypeValidationCallback(ISSValidationCallback)),
+            new ConfigTypeEntry(TranscriptDirectory,             new ConfigTypeEntry.TypeValidationCallback(StringTypeValidationCallback)),
+            new ConfigTypeEntry(TypesToProcess,                  new ConfigTypeEntry.TypeValidationCallback(StringArrayTypeValidationCallback)),
+            new ConfigTypeEntry(UserDriveMaxSize,                new ConfigTypeEntry.TypeValidationCallback(IntegerTypeValidationCallback)),
+            new ConfigTypeEntry(VariableDefinitions,             new ConfigTypeEntry.TypeValidationCallback(VariableDefinitionsTypeValidationCallback)),
+            new ConfigTypeEntry(VisibleAliases,                  new ConfigTypeEntry.TypeValidationCallback(StringArrayTypeValidationCallback)),
+            new ConfigTypeEntry(VisibleCmdlets,                  new ConfigTypeEntry.TypeValidationCallback(StringArrayTypeValidationCallback)),
+            new ConfigTypeEntry(VisibleFunctions,                new ConfigTypeEntry.TypeValidationCallback(StringArrayTypeValidationCallback)),
+            new ConfigTypeEntry(VisibleProviders,                new ConfigTypeEntry.TypeValidationCallback(StringArrayTypeValidationCallback)),
+            new ConfigTypeEntry(VisibleExternalCommands,         new ConfigTypeEntry.TypeValidationCallback(StringArrayTypeValidationCallback)),
         };
 
         /// <summary>
@@ -1210,7 +1223,7 @@ namespace System.Management.Automation.Remoting
                     return false;
                 }
 
-                if ((hashtable[FunctionValueToken] as ScriptBlock) == null)
+                if (hashtable[FunctionValueToken] is not ScriptBlock)
                 {
                     cmdlet.WriteVerbose(StringUtil.Format(RemotingErrorIdStrings.DISCKeyMustBeScriptBlock, FunctionValueToken, key, path));
                     return false;
@@ -1286,7 +1299,7 @@ namespace System.Management.Automation.Remoting
         /// <returns></returns>
         private static bool StringTypeValidationCallback(string key, object obj, PSCmdlet cmdlet, string path)
         {
-            if (!(obj is string))
+            if (obj is not string)
             {
                 cmdlet.WriteVerbose(StringUtil.Format(RemotingErrorIdStrings.DISCTypeMustBeString, key, path));
                 return false;
@@ -1316,7 +1329,7 @@ namespace System.Management.Automation.Remoting
 
         private static bool BooleanTypeValidationCallback(string key, object obj, PSCmdlet cmdlet, string path)
         {
-            if (!(obj is bool))
+            if (obj is not bool)
             {
                 cmdlet.WriteVerbose(StringUtil.Format(RemotingErrorIdStrings.DISCTypeMustBeBoolean, key, path));
                 return false;
@@ -1327,7 +1340,7 @@ namespace System.Management.Automation.Remoting
 
         private static bool IntegerTypeValidationCallback(string key, object obj, PSCmdlet cmdlet, string path)
         {
-            if (!(obj is int) && !(obj is long))
+            if (obj is not int && obj is not long)
             {
                 cmdlet.WriteVerbose(StringUtil.Format(RemotingErrorIdStrings.DISCTypeMustBeInteger, key, path));
                 return false;
@@ -1355,6 +1368,8 @@ namespace System.Management.Automation.Remoting
             return true;
         }
     }
+
+    #endregion
 
     #region DISC Utilities
 
@@ -1635,7 +1650,7 @@ namespace System.Management.Automation.Remoting
         {
             foreach (var roleKey in roleDefinitions.Keys)
             {
-                if (!(roleKey is string))
+                if (roleKey is not string)
                 {
                     var invalidOperationEx = new PSInvalidOperationException(
                         string.Format(RemotingErrorIdStrings.InvalidRoleKeyType, roleKey.GetType().FullName));
@@ -1682,13 +1697,15 @@ namespace System.Management.Automation.Remoting
 
     #endregion
 
+    #region DISCPowerShellConfiguration
+
     /// <summary>
     /// Creates an initial session state based on the configuration language for PSSC files.
     /// </summary>
     internal sealed class DISCPowerShellConfiguration : PSSessionConfiguration
     {
-        private string _configFile;
-        private Hashtable _configHash;
+        private readonly string _configFile;
+        private readonly Hashtable _configHash;
 
         /// <summary>
         /// Gets the configuration hashtable that results from parsing the specified configuration file.
@@ -1707,13 +1724,14 @@ namespace System.Management.Automation.Remoting
         /// target session. If you have a WindowsPrincipal for a user, for example, create a Function that
         /// checks windowsPrincipal.IsInRole().
         /// </param>
-        internal DISCPowerShellConfiguration(string configFile, Func<string, bool> roleVerifier)
+        /// <param name="validateFile">Validate file for supported configuration options.</param>
+        internal DISCPowerShellConfiguration(
+            string configFile,
+            Func<string, bool> roleVerifier,
+            bool validateFile = false)
         {
             _configFile = configFile;
-            if (roleVerifier == null)
-            {
-                roleVerifier = (role) => false;
-            }
+            roleVerifier ??= static (role) => false;
 
             Runspace backupRunspace = Runspace.DefaultRunspace;
 
@@ -1727,6 +1745,12 @@ namespace System.Management.Automation.Remoting
                     configFile, out scriptName);
 
                 _configHash = DISCUtils.LoadConfigFile(Runspace.DefaultRunspace.ExecutionContext, script);
+
+                if (validateFile)
+                {
+                    DISCFileValidation.ValidateContents(_configHash);
+                }
+
                 MergeRoleRulesIntoConfigHash(roleVerifier);
                 MergeRoleCapabilitiesIntoConfigHash();
 
@@ -1789,6 +1813,7 @@ namespace System.Management.Automation.Remoting
 
         // Takes the "RoleCapabilities" node in the config hash, and merges its values into the base configuration.
         private const string PSRCExtension = ".psrc";
+
         private void MergeRoleCapabilitiesIntoConfigHash()
         {
             List<string> psrcFiles = new List<string>();
@@ -1896,18 +1921,18 @@ namespace System.Management.Automation.Remoting
             }
         }
 
-        private string GetRoleCapabilityPath(string roleCapability)
+        private static string GetRoleCapabilityPath(string roleCapability)
         {
             string moduleName = "*";
-            if (roleCapability.IndexOf('\\') != -1)
+            if (roleCapability.Contains('\\'))
             {
-                string[] components = roleCapability.Split(Utils.Separators.Backslash, 2);
+                string[] components = roleCapability.Split('\\', 2);
                 moduleName = components[0];
                 roleCapability = components[1];
             }
 
             // Go through each directory in the module path
-            string[] modulePaths = ModuleIntrinsics.GetModulePath().Split(Utils.Separators.PathSeparator);
+            string[] modulePaths = ModuleIntrinsics.GetModulePath().Split(Path.PathSeparator);
             foreach (string path in modulePaths)
             {
                 try
@@ -2221,7 +2246,7 @@ namespace System.Management.Automation.Remoting
                     foreach (Hashtable variable in variables)
                     {
                         if (variable.ContainsKey(ConfigFileConstants.VariableValueToken) &&
-                            ((variable[ConfigFileConstants.VariableValueToken] as ScriptBlock) != null))
+                            variable[ConfigFileConstants.VariableValueToken] is ScriptBlock)
                         {
                             iss.DynamicVariablesToDefine.Add(variable);
                             continue;
@@ -2392,10 +2417,10 @@ namespace System.Management.Automation.Remoting
             // Process User Drive
             if (_configHash.ContainsKey(ConfigFileConstants.MountUserDrive))
             {
-                if (Convert.ToBoolean(_configHash[ConfigFileConstants.MountUserDrive], CultureInfo.InvariantCulture) == true)
+                if (Convert.ToBoolean(_configHash[ConfigFileConstants.MountUserDrive], CultureInfo.InvariantCulture))
                 {
                     iss.UserDriveEnabled = true;
-                    iss.UserDriveUserName = (senderInfo != null) ? senderInfo.UserInfo.Identity.Name : null;
+                    iss.UserDriveUserName = senderInfo?.UserInfo.Identity.Name;
 
                     // Set user drive max drive if provided.
                     if (_configHash.ContainsKey(ConfigFileConstants.UserDriveMaxSize))
@@ -2446,7 +2471,7 @@ namespace System.Management.Automation.Remoting
             // Parameters = A dictionary of parameter names -> Modifications
             // Modifications = A dictionary of modification types (ValidatePattern, ValidateSet) to the interim value
             //  for that attribute, as a HashSet of strings. For ValidateSet, this will be used as a collection of strings
-            //  directly during proxy generation. For For ValidatePattern, it will be combined into a regex
+            //  directly during proxy generation. For ValidatePattern, it will be combined into a regex
             //  like: '^(Pattern1|Pattern2|Pattern3)$' during proxy generation.
             Dictionary<string, Hashtable> commandModifications = new Dictionary<string, Hashtable>(StringComparer.OrdinalIgnoreCase);
 
@@ -2620,7 +2645,7 @@ namespace System.Management.Automation.Remoting
         /// <summary>
         /// Creates an alias entry.
         /// </summary>
-        private SessionStateAliasEntry CreateSessionStateAliasEntry(Hashtable alias, bool isAliasVisibilityDefined)
+        private static SessionStateAliasEntry CreateSessionStateAliasEntry(Hashtable alias, bool isAliasVisibilityDefined)
         {
             string name = TryGetValue(alias, ConfigFileConstants.AliasNameToken);
 
@@ -2660,7 +2685,7 @@ namespace System.Management.Automation.Remoting
         /// Creates a function entry.
         /// </summary>
         /// <returns></returns>
-        private SessionStateFunctionEntry CreateSessionStateFunctionEntry(Hashtable function, bool isFunctionVisibilityDefined)
+        private static SessionStateFunctionEntry CreateSessionStateFunctionEntry(Hashtable function, bool isFunctionVisibilityDefined)
         {
             string name = TryGetValue(function, ConfigFileConstants.FunctionNameToken);
 
@@ -2700,7 +2725,7 @@ namespace System.Management.Automation.Remoting
         /// <summary>
         /// Creates a variable entry.
         /// </summary>
-        private SessionStateVariableEntry CreateSessionStateVariableEntry(Hashtable variable, PSLanguageMode languageMode)
+        private static SessionStateVariableEntry CreateSessionStateVariableEntry(Hashtable variable, PSLanguageMode languageMode)
         {
             string name = TryGetValue(variable, ConfigFileConstants.VariableNameToken);
 
@@ -2804,9 +2829,7 @@ namespace System.Management.Automation.Remoting
 
                     for (int i = 0; i < hashArray.Length; i++)
                     {
-                        Hashtable hash = objArray[i] as Hashtable;
-
-                        if (hash == null)
+                        if (!(objArray[i] is Hashtable hash))
                         {
                             return null;
                         }
@@ -2891,5 +2914,111 @@ namespace System.Management.Automation.Remoting
             return result;
         }
     }
+    #endregion
+
+    #region DISCFileValidation
+
+    internal static class DISCFileValidation
+    {
+        // Set of supported configuration options for a PowerShell InitialSessionState.
+#if UNIX
+        private static readonly HashSet<string> SupportedConfigOptions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "AliasDefinitions",
+            "AssembliesToLoad",
+            "Author",
+            "CompanyName",
+            "Copyright",
+            "Description",
+            "EnvironmentVariables",
+            "FormatsToProcess",
+            "FunctionDefinitions",
+            "GUID",
+            "LanguageMode",
+            "ModulesToImport",
+            "MountUserDrive",
+            "SchemaVersion",
+            "ScriptsToProcess",
+            "SessionType",
+            "TranscriptDirectory",
+            "TypesToProcess",
+            "UserDriveMaximumSize",
+            "VisibleAliases",
+            "VisibleCmdlets",
+            "VariableDefinitions",
+            "VisibleExternalCommands",
+            "VisibleFunctions",
+            "VisibleProviders"
+        };
+#else
+        private static readonly HashSet<string> SupportedConfigOptions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "AliasDefinitions",
+            "AssembliesToLoad",
+            "Author",
+            "CompanyName",
+            "Copyright",
+            "Description",
+            "EnvironmentVariables",
+            "ExecutionPolicy",
+            "FormatsToProcess",
+            "FunctionDefinitions",
+            "GUID",
+            "LanguageMode",
+            "ModulesToImport",
+            "MountUserDrive",
+            "SchemaVersion",
+            "ScriptsToProcess",
+            "SessionType",
+            "TranscriptDirectory",
+            "TypesToProcess",
+            "UserDriveMaximumSize",
+            "VisibleAliases",
+            "VisibleCmdlets",
+            "VariableDefinitions",
+            "VisibleExternalCommands",
+            "VisibleFunctions",
+            "VisibleProviders"
+        };
+#endif
+
+        // These are configuration options for WSMan (WinRM) endpoint configurations, that
+        // appearand in .pssc files, but are not part of PowerShell InitialSessionState.
+        private static readonly HashSet<string> UnsupportedConfigOptions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "GroupManagedServiceAccount",
+            "PowerShellVersion",
+            "RequiredGroups",
+            "RoleDefinitions",
+            "RunAsVirtualAccount",
+            "RunAsVirtualAccountGroups"
+        };
+
+        internal static void ValidateContents(Hashtable configHash)
+        {
+            foreach (var key in configHash.Keys)
+            {
+                if (key is not string keyName)
+                {
+                    throw new PSInvalidOperationException(RemotingErrorIdStrings.DISCInvalidConfigKeyType);
+                }
+
+                if (UnsupportedConfigOptions.Contains(keyName))
+                {
+                    throw new PSInvalidOperationException(
+                        StringUtil.Format(RemotingErrorIdStrings.DISCUnsupportedConfigName, keyName));
+                }
+
+                if (!SupportedConfigOptions.Contains(keyName))
+                {
+                    throw new PSInvalidOperationException(
+                        StringUtil.Format(RemotingErrorIdStrings.DISCUnknownConfigName, keyName));
+                }
+            }
+        }
+    }
+
+    #endregion
+
     #endregion
 }

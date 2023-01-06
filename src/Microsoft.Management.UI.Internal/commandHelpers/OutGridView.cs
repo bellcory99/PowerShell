@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System;
@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation;
+using System.Management.Automation.Internal;
 using System.Threading;
 using System.Windows;
 using System.Windows.Automation;
@@ -135,10 +136,10 @@ namespace Microsoft.Management.UI.Internal
                    {
                        this.gridViewWindow = new Window();
                        this.managementList = CreateManagementList(outputModeOptions);
-                       this.gridViewWindow.Loaded += new RoutedEventHandler(this.GridViewWindowLoaded);
+                       this.gridViewWindow.Loaded += this.GridViewWindowLoaded;
                        this.gridViewWindow.Content = CreateMainGrid(outputModeOptions);
                        this.gridViewWindow.Title = invocation;
-                       this.gridViewWindow.Closed += new EventHandler(this.GridViewWindowClosed);
+                       this.gridViewWindow.Closed += this.GridViewWindowClosed;
 
                        RoutedCommand plusSettings = new RoutedCommand();
                        KeyGestureConverter keyGestureConverter = new KeyGestureConverter();
@@ -213,7 +214,7 @@ namespace Microsoft.Management.UI.Internal
 
             if (this.zoomLevel < ZOOM_MAX)
             {
-                this.zoomLevel = this.zoomLevel + ZOOM_INCREMENT;
+                this.zoomLevel += ZOOM_INCREMENT;
                 Grid g = this.gridViewWindow.Content as Grid;
 
                 if (g != null)
@@ -232,7 +233,7 @@ namespace Microsoft.Management.UI.Internal
         {
             if (this.zoomLevel >= ZOOM_MIN)
             {
-                this.zoomLevel = this.zoomLevel - ZOOM_INCREMENT;
+                this.zoomLevel -= ZOOM_INCREMENT;
                 Grid g = this.gridViewWindow.Content as Grid;
                 if (g != null)
                 {
@@ -323,7 +324,7 @@ namespace Microsoft.Management.UI.Internal
             ok.SetValue(Grid.ColumnProperty, 0);
             ok.IsDefault = true;
             ok.SetValue(AutomationProperties.AutomationIdProperty, "OGVOK");
-            ok.Click += new RoutedEventHandler(OK_Click);
+            ok.Click += OK_Click;
             return ok;
         }
 
@@ -340,7 +341,7 @@ namespace Microsoft.Management.UI.Internal
             cancel.SetValue(Grid.ColumnProperty, 1);
             cancel.IsCancel = true;
             cancel.SetValue(AutomationProperties.AutomationIdProperty, "OGVCancel");
-            cancel.Click += new RoutedEventHandler(Cancel_Click);
+            cancel.Click += Cancel_Click;
             return cancel;
         }
 
@@ -409,7 +410,7 @@ namespace Microsoft.Management.UI.Internal
             this.managementList.Dispatcher.Invoke(
                 System.Windows.Threading.DispatcherPriority.Normal,
                 new Action(
-                    delegate()
+                    () =>
                     {
                         // Pick the length of the shortest incoming arrays. Normally all incoming arrays should be of the same length.
                         int length = propertyNames.Length;
@@ -461,19 +462,19 @@ namespace Microsoft.Management.UI.Internal
                             // Set focus on ListView
                             this.managementList.List.SelectedIndex = 0;
                             this.managementList.List.Focus();
-                       }
-                       catch (Exception e)
-                       {
-                           // Store the exception in a local variable that will be checked later.
-                           if (e.InnerException != null)
-                           {
-                               this.exception = e.InnerException;
-                           }
-                           else
-                           {
-                            this.exception = e;
-                           }
-                       }
+                        }
+                        catch (Exception e)
+                        {
+                            // Store the exception in a local variable that will be checked later.
+                            if (e.InnerException != null)
+                            {
+                                this.exception = e.InnerException;
+                            }
+                            else
+                            {
+                                this.exception = e;
+                            }
+                        }
                     }));
         }
 
@@ -492,10 +493,20 @@ namespace Microsoft.Management.UI.Internal
             this.managementList.Dispatcher.BeginInvoke(
                 System.Windows.Threading.DispatcherPriority.Normal,
                 new Action(
-                    delegate()
+                    () =>
                     {
                         try
                         {
+                            // Remove any potential ANSI decoration
+                            foreach (var property in value.Properties)
+                            {
+                                if (property.Value is string str)
+                                {
+                                    StringDecorated decoratedString = new StringDecorated(str);
+                                    property.Value = decoratedString.ToString(OutputRendering.PlainText);
+                                }
+                            }
+
                             this.listItems.Add(value);
                         }
                         catch (Exception e)
